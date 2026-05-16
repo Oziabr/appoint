@@ -1,0 +1,46 @@
+#view-book.view
+  .book-shell
+    .book-header
+      h1#bk-host-name Book a meeting
+      p#bk-host-bio
+    //  Step 1: meeting type 
+    #bk-step-type
+      .slots-header SELECT A MEETING TYPE
+      .mtype-grid#bk-types
+    //  Step 2: calendar + slots 
+    #bk-step-cal(style='display:none')
+      hr
+      .cal-wrap
+        .cal-nav
+          span.month-label#cal-month-label
+          button.btn.btn-ghost.btn-sm#cal-prev ←
+          button.btn.btn-ghost.btn-sm#cal-next →
+        .cal-grid#cal-grid
+      #bk-step-slots(style='display:none')
+        .slots-header#slots-header
+        .slots-grid#slots-grid
+    //  Step 3: guest details form 
+    #bk-step-form(style='display:none')
+      hr
+      .guest-form
+        h2 Your details
+        .summary#bk-summary
+        .field
+          label YOUR NAME *
+          input#gf-name(type='text' autocomplete='name')
+        .field
+          label EMAIL *
+          input#gf-email(type='email' autocomplete='email')
+        .field
+          label NOTES (optional)
+          textarea#gf-notes(placeholder='Anything I should know…')
+        button.btn.btn-primary#gf-submit(style='width:100%') Confirm booking
+        .err-msg#gf-err
+    //  Step 4: confirmation 
+    #bk-step-done(style='display:none')
+      .confirm-box
+        .checkmark ✦
+        h2 You're booked
+        p#confirm-body
+        .confirm-id#confirm-id
+//  ── MODAL (generic) ───────────────────────────────────────── 

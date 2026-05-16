@@ -1,0 +1,19 @@
+#view-auth.view
+  .auth-card
+    h1 Schedule
+    p#auth-sub Host sign in
+    form#auth-form(autocomplete='on' novalidate)
+      .field
+        label EMAIL
+        input#auth-email(type='email' name='email' placeholder='you@example.com' autocomplete='email')
+      .field#pw-field
+        label PASSWORD
+        input#auth-pw(type='password' name='password' placeholder='••••••••' autocomplete='current-password')
+      .field#name-field(style='display:none')
+        label YOUR NAME
+        input#auth-name(type='text' name='name' placeholder='Alex Morgan' autocomplete='name')
+      button.btn.btn-primary#auth-btn(type='submit' style='width:100%') Sign in
+    .auth-err#auth-err
+    .auth-toggle
+      a#auth-toggle-link(href='#') Create a host account →
+//  ── HOST DASHBOARD ────────────────────────────────────────── 

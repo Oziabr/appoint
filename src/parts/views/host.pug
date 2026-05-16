@@ -1,0 +1,123 @@
+#view-host.view
+  .shell
+    .topbar
+      span.topbar-brand Schedule
+      span.topbar-user#host-email-label
+      .topbar-actions
+        a.btn.btn-ghost.btn-sm#share-link-btn(href='#' target='_blank' rel='noopener') 🔗 Booking link
+        button.btn.btn-ghost.btn-sm#signout-btn Sign out
+    div(style='margin-top:32px')
+      h1(style='font-size:28px') Dashboard
+      p(style='color:var(--muted);margin-top:4px;font-size:13px') Manage your availability and meeting types.
+    .dash-grid
+      //  Meeting types 
+      .panel
+        .panel-head
+          h2 Meeting types
+          button.btn.btn-sm#add-type-btn + Add
+        .panel-body
+          #types-list
+            span.spinner
+          .inline-form#type-form(style='display:none')
+            .field
+              label NAME
+              input#tf-name(placeholder='30-min intro call')
+            div(style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px')
+              .field
+                label DURATION (min)
+                input#tf-dur(type='number' value='30' min='5' max='480')
+              .field
+                label POST-MEETING (min)
+                input#tf-post(type='number' value='0' min='0' max='120' title='Buffer after meeting, hidden from guests')
+              .field
+                label STEP (min)
+                input#tf-step(type='number' min='1' max='120' placeholder='auto' title='Slot start interval; default 10 for <60 min, 30 for longer')
+            .field
+              label DESCRIPTION (optional)
+              input#tf-desc(placeholder='Brief description')
+            .field
+              label COLOR
+              #color-picker(style='display:flex;gap:8px;flex-wrap:wrap')
+            div(style='display:flex;gap:8px;margin-top:4px')
+              button.btn.btn-primary.btn-sm#tf-save Save
+              button.btn.btn-ghost.btn-sm#tf-cancel Cancel
+            .err-msg#tf-err
+      //  Availability 
+      .panel(style='grid-column: 1 / -1')
+        .panel-head
+          h2 Weekly availability
+        .panel-body
+          .avail-tabs
+            button.avail-tab.active(data-tab='grid') Grid
+            button.avail-tab(data-tab='form') Form
+          //  GRID TAB 
+          #avail-tab-grid
+            .avail-grid-controls
+              span.label STEP
+              button.step-btn(data-step='5') 5m
+              button.step-btn(data-step='10') 10m
+              button.step-btn.active(data-step='15') 15m
+              button.step-btn(data-step='30') 30m
+              span(style='flex:1')
+              button.btn.btn-primary.btn-sm#ag-save Save grid
+            .avail-grid-wrap
+              #avail-grid.avail-grid
+          //  FORM TAB 
+          #avail-tab-form(style='display:none')
+            #avail-list
+              span.spinner
+            .inline-form#avail-form(style='display:none;margin-top:10px')
+              .field
+                label DAY
+                select#af-day
+                  option(value='0') Sunday
+                  option(value='1') Monday
+                  option(value='2') Tuesday
+                  option(value='3') Wednesday
+                  option(value='4') Thursday
+                  option(value='5') Friday
+                  option(value='6') Saturday
+              div(style='display:grid;grid-template-columns:1fr 1fr;gap:10px')
+                .field
+                  label FROM
+                  input#af-from(type='time' value='09:00')
+                .field
+                  label TO
+                  |  
+                  input#af-to(type='time' value='17:00')
+              div(style='display:flex;gap:8px')
+                button.btn.btn-primary.btn-sm#af-save Save
+                button.btn.btn-ghost.btn-sm#af-cancel Cancel
+              .err-msg#af-err
+            button.btn.btn-sm#add-avail-btn(style='margin-top:10px') + Add row
+      //  Profile 
+      .panel
+        .panel-head
+          h2 Profile
+        .panel-body
+          .avatar-row
+            img#pf-avatar.avatar-preview(src alt='avatar')
+            div
+              .slots-header(style='margin-bottom:8px') PROFILE PICTURE
+              .avatar-options
+                button.avatar-opt(data-src='initials') Initials
+                button.avatar-opt(data-src='gravatar') Gravatar
+          .field
+            label NAME
+            input#pf-name(placeholder='Your name')
+          .field
+            label BIO (shown to guests)
+            textarea#pf-bio(rows='3' placeholder='Brief intro…')
+          .field
+            label TIMEZONE
+            select#pf-tz
+          button.btn.btn-primary.btn-sm#pf-save Save profile
+          .err-msg#pf-err
+      //  Upcoming bookings 
+      .panel
+        .panel-head
+          h2 Upcoming bookings
+        .panel-body
+          #bookings-list
+            span.spinner
+//  ── BOOKING / GUEST VIEW ───────────────────────────────────── 
