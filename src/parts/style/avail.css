@@ -31,8 +31,13 @@
   margin-bottom: 10px;
   flex-wrap: wrap;
 }
-.avail-grid-controls .label { font-size: 10px; color: var(--muted); letter-spacing: .1em; margin-right: 4px }
-.step-btn {
+.avail-grid-controls .label {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: .1em;
+  margin-right: 4px;
+}
+.step-btn, .half-btn {
   padding: 3px 10px;
   font-family: var(--fmono);
   font-size: 10px;
@@ -43,9 +48,15 @@
   border-radius: var(--r);
   transition: all .12s;
 }
-.step-btn:hover  { border-color: var(--accent); color: var(--accent) }
-.step-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,255,.08) }
+.step-btn:hover,  .half-btn:hover  { border-color: var(--accent); color: var(--accent) }
+.step-btn.active, .half-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,229,255,.08);
+}
+.avail-divider { width: 1px; height: 18px; background: var(--border2); margin: 0 4px }
 
+/* ── grid layout ── */
 .avail-grid {
   display: grid;
   border: 1px solid var(--border);
@@ -55,24 +66,34 @@
   -webkit-user-select: none;
   min-width: 500px;
 }
-.ag-header-row,
-.ag-day-row {
-  display: contents;
-}
-.ag-corner { background: var(--surface2) }
-.ag-time-label {
+
+/* corner */
+.ag-corner {
   background: var(--surface2);
-  font-size: 9px;
-  color: var(--muted);
-  text-align: center;
-  padding: 3px 2px;
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  letter-spacing: .04em;
-  white-space: nowrap;
+  border-right: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border2);
 }
-.ag-time-label:last-child { border-right: none }
-.ag-time-label.hour-mark { color: var(--ink); font-weight: 700 }
+
+/* hour header — spans N slot columns */
+.ag-hour-label {
+  background: var(--surface2);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+  padding: 5px 2px;
+  border-right: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border2);
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: background .1s;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.ag-hour-label:hover { background: rgba(0,229,255,.12); color: var(--accent) }
+.ag-hour-label:last-child { border-right: none }
+
+/* day label — left column, toggles row */
 .ag-day-label {
   background: var(--surface2);
   font-size: 10px;
@@ -86,35 +107,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: background .1s;
 }
+.ag-day-label:hover { background: rgba(0,229,255,.12) }
+
+/* slot cells */
 .ag-cell {
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background .08s;
-  min-height: 20px;
+  min-height: 24px;
 }
-.ag-cell:last-child { border-right: none }
-.ag-cell.on  { background: rgba(0,229,255,.22) }
-.ag-cell.on:hover { background: rgba(0,229,255,.32) }
-.ag-cell:not(.on):hover { background: rgba(0,229,255,.07) }
 .ag-cell.hour-divider { border-right-color: var(--border2) }
-.ag-save-row {
-  grid-column: 1 / -1;
-  padding: 10px;
-  display: flex;
-  gap: 8px;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  align-items: center;
-}
-.ag-save-row .ag-hint { font-size: 10px; color: var(--muted); flex: 1 }
+.ag-cell.on           { background: rgba(0,229,255,.22) }
+.ag-cell.on:hover     { background: rgba(0,229,255,.32) }
+.ag-cell:not(.on):hover { background: rgba(0,229,255,.07) }
 
 /* hotrod overrides */
-html.hotrod .avail-tab.active { color: var(--accent); border-bottom-color: var(--accent) }
-html.hotrod .ag-cell.on { background: rgba(204,34,0,.25) }
-html.hotrod .ag-cell.on:hover { background: rgba(204,34,0,.38) }
+html.hotrod .avail-tab.active    { color: var(--accent); border-bottom-color: var(--accent) }
+html.hotrod .ag-day-label        { color: var(--accent) }
+html.hotrod .ag-day-label:hover  { background: rgba(204,34,0,.12) }
+html.hotrod .ag-hour-label:hover { background: rgba(204,34,0,.12); color: var(--accent) }
+html.hotrod .ag-cell.on          { background: rgba(204,34,0,.25) }
+html.hotrod .ag-cell.on:hover    { background: rgba(204,34,0,.38) }
 html.hotrod .ag-cell:not(.on):hover { background: rgba(204,34,0,.08) }
-html.hotrod .ag-day-label { color: var(--accent) }
-
-/* ─── CORNER RIBBON (staging only) ──────────────────────────── */
+html.hotrod .step-btn.active, html.hotrod .half-btn.active {
+  background: rgba(204,34,0,.1);
+}

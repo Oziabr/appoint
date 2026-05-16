@@ -198,10 +198,14 @@ const deleteType = async id => {
 }
 
 // ── availability ──────────────────────────────────────────────
-const DAY_NAMES    = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
-const DAY_LABELS   = ['Su','Mo','Tu','We','Th','Fr','Sa']
-const TOTAL_MINS   = 24 * 60   // full day grid
-const START_HOUR   = 0
+const DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+const DAY_LABELS  = ['Su','Mo','Tu','We','Th','Fr','Sa']
+
+// half config: day = 08:00-20:00, night = 20:00-08:00 (next)
+const HALF_CFG = {
+  day:   { start: 8,  end: 20, label: '08–20' },
+  night: { start: 20, end: 32, label: '20–08' }  // end 32 = next day 08:00
+}
 
 // ── availability tab switcher ─────────────────────────────────
 let availTab = localStorage.getItem('appt_avail_tab') || 'grid'
@@ -218,25 +222,30 @@ document.querySelectorAll('.avail-tab').forEach(b =>
 switchAvailTab(availTab)
 
 // ── grid state ────────────────────────────────────────────────
-// gridState[day][slotIndex] = true/false
-let gridState  = Array.from({length:7}, () => ({}))
-let gridStep   = parseInt(localStorage.getItem('appt_avail_step') || '15')
-let dragValue  = null   // true = painting on, false = painting off
+// gridState[day][absoluteSlotIndex] = true/false
+// absolute slot index is relative to 00:00 across 24h (or 48h for overnight)
+let gridState = Array.from({length:7}, () => ({}))
+let gridStep  = parseInt(localStorage.getItem('appt_avail_step') || '15')
+let gridHalf  = localStorage.getItem('appt_avail_half') || 'day'
+let dragValue = null
 
-const slotsPerDay = () => Math.ceil(TOTAL_MINS / gridStep)
+const halfCfg    = () => HALF_CFG[gridHalf]
+const halfHours  = () => halfCfg().end - halfCfg().start  // 12h each half
+const slotsInHalf= () => (halfHours() * 60) / gridStep
+const absSlot    = i  => Math.floor((halfCfg().start * 60) / gridStep) + i
 
 // ── encode/decode grid ↔ availability windows ─────────────────
 const gridToWindows = () => {
-  const wins = []
+  const total = Math.ceil(48 * 60 / gridStep)  // full 48h slot space
+  const wins  = []
   for (let day = 0; day < 7; day++) {
-    const slots = slotsPerDay()
     let start = null
-    for (let i = 0; i <= slots; i++) {
+    for (let i = 0; i <= total; i++) {
       const on = !!gridState[day][i]
       if (on && start === null) { start = i }
       if (!on && start !== null) {
-        const fromM = start * gridStep
-        const toM   = i * gridStep
+        const fromM = (start * gridStep) % (24 * 60)
+        const toM   = (i     * gridStep) % (24 * 60)
         wins.push({
           day,
           start_time: `${String(Math.floor(fromM/60)).padStart(2,'0')}:${String(fromM%60).padStart(2,'0')}`,
@@ -251,7 +260,6 @@ const gridToWindows = () => {
 
 const windowsToGrid = rows => {
   gridState = Array.from({length:7}, () => ({}))
-  const slots = slotsPerDay()
   rows.forEach(r => {
     const [fh,fm] = r.start_time.split(':').map(Number)
     const [th,tm] = r.end_time.split(':').map(Number)
@@ -264,47 +272,74 @@ const windowsToGrid = rows => {
 
 // ── render grid ───────────────────────────────────────────────
 const renderGrid = () => {
-  const slots   = slotsPerDay()
-  const grid    = document.getElementById('avail-grid')
-  const cols    = 1 + slots   // day label col + slot cols
-  grid.style.gridTemplateColumns = `36px repeat(${slots}, minmax(0, 1fr))`
+  const cfg      = halfCfg()
+  const slotsCnt = slotsInHalf()
+  const slotsPerHour = 60 / gridStep
+  const hours    = halfHours()
+  const grid     = document.getElementById('avail-grid')
 
-  // header row: corner + time labels
-  let html = `<div class="ag-corner ag-time-label"></div>`
-  for (let i = 0; i < slots; i++) {
-    const m = i * gridStep
-    const h = Math.floor(m / 60), min = m % 60
-    const isHour = min === 0
-    const label  = isHour ? `${String(h).padStart(2,'0')}` : ''
-    html += `<div class="ag-time-label${isHour?' hour-mark':''}">${label}</div>`
+  // columns: 1 day-label col + N slot cols
+  grid.style.gridTemplateColumns = `36px repeat(${slotsCnt}, minmax(0, 1fr))`
+
+  // ── header row: corner + hour cells (each spans slotsPerHour cols)
+  let html = `<div class="ag-corner"></div>`
+  for (let h = 0; h < hours; h++) {
+    const absH = cfg.start + h
+    const label = `${String(absH % 24).padStart(2,'0')}`
+    html += `<div class="ag-hour-label" data-hstart="${h}" style="grid-column:span ${slotsPerHour}">${label}</div>`
   }
 
-  // day rows
+  // ── day rows
   for (let day = 0; day < 7; day++) {
-    html += `<div class="ag-day-label">${DAY_LABELS[day]}</div>`
-    for (let i = 0; i < slots; i++) {
-      const m = i * gridStep
-      const isHour = m % 60 === 0 && m > 0
-      const on = !!gridState[day][i]
-      html += `<div class="ag-cell${on?' on':''}${isHour?' hour-divider':''}" data-day="${day}" data-slot="${i}"></div>`
+    html += `<div class="ag-day-label" data-day="${day}">${DAY_LABELS[day]}</div>`
+    for (let i = 0; i < slotsCnt; i++) {
+      const abs    = absSlot(i)
+      const isHour = i % slotsPerHour === 0 && i > 0
+      const on     = !!gridState[day][abs]
+      html += `<div class="ag-cell${on?' on':''}${isHour?' hour-divider':''}" data-day="${day}" data-slot="${abs}"></div>`
     }
   }
 
   grid.innerHTML = html
 
-  // drag gesture
+  // ── row toggle (day label click) ─────────────────────────────
+  grid.querySelectorAll('.ag-day-label').forEach(lbl => {
+    lbl.onclick = () => {
+      const day  = +lbl.dataset.day
+      const any  = [...Array(slotsCnt)].some((_,i) => gridState[day][absSlot(i)])
+      const val  = !any   // if anything is on, clear; else fill
+      for (let i = 0; i < slotsCnt; i++) gridState[day][absSlot(i)] = val
+      renderGrid()
+    }
+  })
+
+  // ── col toggle (hour label click) ────────────────────────────
+  grid.querySelectorAll('.ag-hour-label').forEach(lbl => {
+    lbl.onclick = () => {
+      const hstart    = +lbl.dataset.hstart
+      const firstSlot = hstart * slotsPerHour
+      const any  = [...Array(slotsPerHour)].some((_,j) =>
+        gridState.some(row => row[absSlot(firstSlot + j)]))
+      const val  = !any
+      for (let day = 0; day < 7; day++)
+        for (let j = 0; j < slotsPerHour; j++)
+          gridState[day][absSlot(firstSlot + j)] = val
+      renderGrid()
+    }
+  })
+
+  // ── drag gesture ─────────────────────────────────────────────
   let dragging = false
   const getCell = e => {
     const t = e.target.closest('.ag-cell')
     if (!t) return null
-    return { el: t, day: +t.dataset.day, slot: +t.dataset.slot }
+    return { day: +t.dataset.day, slot: +t.dataset.slot }
   }
   const applyCell = (day, slot, val) => {
     gridState[day][slot] = val
     const cell = grid.querySelector(`[data-day="${day}"][data-slot="${slot}"]`)
     if (cell) cell.classList.toggle('on', val)
   }
-
   grid.addEventListener('mousedown', e => {
     const c = getCell(e)
     if (!c) return
@@ -318,15 +353,13 @@ const renderGrid = () => {
     const c = getCell(e)
     if (c) applyCell(c.day, c.slot, dragValue)
   })
-  // touch support
   grid.addEventListener('touchstart', e => {
     const touch = e.touches[0]
     const el = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.ag-cell')
     if (!el) return
     dragging  = true
-    const day = +el.dataset.day, slot = +el.dataset.slot
-    dragValue = !gridState[day][slot]
-    applyCell(day, slot, dragValue)
+    dragValue = !gridState[+el.dataset.day][+el.dataset.slot]
+    applyCell(+el.dataset.day, +el.dataset.slot, dragValue)
   }, { passive: true })
   grid.addEventListener('touchmove', e => {
     if (!dragging) return
@@ -334,27 +367,32 @@ const renderGrid = () => {
     const el = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.ag-cell')
     if (el) applyCell(+el.dataset.day, +el.dataset.slot, dragValue)
   }, { passive: true })
-
-  document.addEventListener('mouseup',  () => { dragging = false }, { once: false })
-  document.addEventListener('touchend', () => { dragging = false }, { once: false })
+  document.addEventListener('mouseup',  () => { dragging = false })
+  document.addEventListener('touchend', () => { dragging = false })
 }
+
+// ── half switcher ─────────────────────────────────────────────
+const switchHalf = h => {
+  gridHalf = h
+  localStorage.setItem('appt_avail_half', h)
+  document.querySelectorAll('.half-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.half === h))
+  renderGrid()
+}
+document.querySelectorAll('.half-btn').forEach(b =>
+  b.onclick = () => switchHalf(b.dataset.half))
+switchHalf(gridHalf)
 
 // ── step button controls ──────────────────────────────────────
 document.querySelectorAll('.step-btn').forEach(b => {
   if (+b.dataset.step === gridStep) b.classList.add('active')
   b.onclick = () => {
-    // convert current windows to new step
     const wins = gridToWindows()
     gridStep = +b.dataset.step
     localStorage.setItem('appt_avail_step', gridStep)
     document.querySelectorAll('.step-btn').forEach(x =>
       x.classList.toggle('active', +x.dataset.step === gridStep))
-    windowsToGrid(wins.map(w => ({
-      ...w,
-      // normalise to new step by snapping
-      start_time: w.start_time,
-      end_time:   w.end_time
-    })))
+    windowsToGrid(wins)
     renderGrid()
   }
 })
