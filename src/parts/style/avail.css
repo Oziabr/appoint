@@ -19,10 +19,10 @@
   margin-bottom: -1px;
   transition: all .12s;
 }
-.avail-tab:hover { color: var(--ink) }
+.avail-tab:hover  { color: var(--ink) }
 .avail-tab.active { color: var(--accent); border-bottom-color: var(--accent) }
 
-.avail-grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch }
+.avail-grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y }
 
 .avail-grid-controls {
   display: flex;
@@ -31,13 +31,9 @@
   margin-bottom: 10px;
   flex-wrap: wrap;
 }
-.avail-grid-controls .label {
-  font-size: 10px;
-  color: var(--muted);
-  letter-spacing: .1em;
-  margin-right: 4px;
-}
-.step-btn, .half-btn {
+.avail-grid-controls .label { font-size: 10px; color: var(--muted); letter-spacing: .1em; margin-right: 4px }
+
+.step-btn, .part-btn {
   padding: 3px 10px;
   font-family: var(--fmono);
   font-size: 10px;
@@ -48,15 +44,32 @@
   border-radius: var(--r);
   transition: all .12s;
 }
-.step-btn:hover,  .half-btn:hover  { border-color: var(--accent); color: var(--accent) }
-.step-btn.active, .half-btn.active {
+.step-btn:hover { border-color: var(--accent); color: var(--accent) }
+.step-btn.active {
   border-color: var(--accent);
   color: var(--accent);
   background: rgba(0,229,255,.08);
 }
+/* part cycle button — styled like the theme switch */
+.part-btn {
+  font-family: var(--fhead);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  padding: 4px 12px;
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,229,255,.06);
+  box-shadow: 0 0 8px rgba(0,229,255,.2);
+}
+.part-btn:hover {
+  background: var(--accent);
+  color: var(--bg);
+  box-shadow: 0 0 16px rgba(0,229,255,.4);
+}
 .avail-divider { width: 1px; height: 18px; background: var(--border2); margin: 0 4px }
 
-/* ── grid layout ── */
+/* ── grid ── */
 .avail-grid {
   display: grid;
   border: 1px solid var(--border);
@@ -64,17 +77,50 @@
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
-  min-width: 500px;
+  touch-action: none;   /* let pointer events handle all touch */
+  min-width: 420px;
 }
 
-/* corner */
+/* side indicator corners (header row) */
+.ag-ind-corner {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border2);
+}
+.ag-ind-corner.ag-ind-prev { border-right: 1px solid var(--border2) }
+.ag-ind-corner.ag-ind-next { border-left:  1px solid var(--border2) }
+
+/* side indicator cells (day rows) */
+.ag-ind-cell {
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.ag-ind-cell.ag-ind-prev { border-right: 2px solid var(--border2) }
+.ag-ind-cell.ag-ind-next { border-left:  2px solid var(--border2) }
+
+/* dot inside indicator when that part has data */
+.ag-ind-cell.has::after,
+.ag-ind-corner.has::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent2);
+  box-shadow: 0 0 5px var(--accent2);
+}
+.ag-ind-cell { display: flex; align-items: center; justify-content: center }
+.ag-ind-corner { display: flex; align-items: center; justify-content: center }
+
+/* day-label corner */
 .ag-corner {
   background: var(--surface2);
   border-right: 1px solid var(--border2);
   border-bottom: 1px solid var(--border2);
 }
 
-/* hour header — spans N slot columns */
+/* hour header — spans slotsPerHour cols */
 .ag-hour-label {
   background: var(--surface2);
   font-size: 10px;
@@ -91,9 +137,9 @@
   overflow: hidden;
 }
 .ag-hour-label:hover { background: rgba(0,229,255,.12); color: var(--accent) }
-.ag-hour-label:last-child { border-right: none }
+.ag-hour-label:last-of-type { border-right: none }
 
-/* day label — left column, toggles row */
+/* day label — left col, toggles row */
 .ag-day-label {
   background: var(--surface2);
   font-size: 10px;
@@ -117,22 +163,42 @@
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   cursor: pointer;
-  transition: background .08s;
-  min-height: 24px;
+  transition: background .06s;
+  min-height: 26px;
+  touch-action: none;
 }
-.ag-cell.hour-divider { border-right-color: var(--border2) }
-.ag-cell.on           { background: rgba(0,229,255,.22) }
-.ag-cell.on:hover     { background: rgba(0,229,255,.32) }
-.ag-cell:not(.on):hover { background: rgba(0,229,255,.07) }
+.ag-cell.hour-divider    { border-right-color: var(--border2) }
+.ag-cell.on              { background: rgba(0,229,255,.22) }
+.ag-cell.on:hover        { background: rgba(0,229,255,.32) }
+.ag-cell:not(.on):hover  { background: rgba(0,229,255,.07) }
 
-/* hotrod overrides */
-html.hotrod .avail-tab.active    { color: var(--accent); border-bottom-color: var(--accent) }
-html.hotrod .ag-day-label        { color: var(--accent) }
-html.hotrod .ag-day-label:hover  { background: rgba(204,34,0,.12) }
-html.hotrod .ag-hour-label:hover { background: rgba(204,34,0,.12); color: var(--accent) }
-html.hotrod .ag-cell.on          { background: rgba(204,34,0,.25) }
-html.hotrod .ag-cell.on:hover    { background: rgba(204,34,0,.38) }
-html.hotrod .ag-cell:not(.on):hover { background: rgba(204,34,0,.08) }
-html.hotrod .step-btn.active, html.hotrod .half-btn.active {
-  background: rgba(204,34,0,.1);
+/* mobile: bigger touch targets */
+@media (max-width: 600px) {
+  .ag-cell  { min-height: 32px }
+  .ag-day-label { font-size: 9px; padding: 4px 2px }
+  .ag-hour-label { font-size: 9px }
+  .avail-grid { min-width: 320px }
 }
+
+/* hotrod */
+html.hotrod .avail-tab.active     { color: var(--accent); border-bottom-color: var(--accent) }
+html.hotrod .ag-day-label         { color: var(--accent) }
+html.hotrod .ag-day-label:hover   { background: rgba(204,34,0,.12) }
+html.hotrod .ag-hour-label:hover  { background: rgba(204,34,0,.12); color: var(--accent) }
+html.hotrod .ag-cell.on           { background: rgba(204,34,0,.25) }
+html.hotrod .ag-cell.on:hover     { background: rgba(204,34,0,.38) }
+html.hotrod .ag-cell:not(.on):hover { background: rgba(204,34,0,.08) }
+html.hotrod .step-btn.active      { background: rgba(204,34,0,.1) }
+html.hotrod .part-btn {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(204,34,0,.08);
+  box-shadow: 0 0 8px rgba(204,34,0,.3);
+}
+html.hotrod .part-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(204,34,0,.6);
+}
+html.hotrod .ag-ind-cell.has::after,
+html.hotrod .ag-ind-corner.has::after { background: var(--accent2); box-shadow: 0 0 5px var(--accent2) }

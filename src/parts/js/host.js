@@ -201,11 +201,12 @@ const deleteType = async id => {
 const DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 const DAY_LABELS  = ['Su','Mo','Tu','We','Th','Fr','Sa']
 
-// half config: day = 08:00-20:00, night = 20:00-08:00 (next)
-const HALF_CFG = {
-  day:   { start: 8,  end: 20, label: '08–20' },
-  night: { start: 20, end: 32, label: '20–08' }  // end 32 = next day 08:00
-}
+// three 8-hour parts cycling via one button
+const PARTS = [
+  { idx: 0, start: 0,  end: 8,  label: '00–08' },
+  { idx: 1, start: 8,  end: 16, label: '08–16' },
+  { idx: 2, start: 16, end: 24, label: '16–24' },
+]
 
 // ── availability tab switcher ─────────────────────────────────
 let availTab = localStorage.getItem('appt_avail_tab') || 'grid'
@@ -222,30 +223,40 @@ document.querySelectorAll('.avail-tab').forEach(b =>
 switchAvailTab(availTab)
 
 // ── grid state ────────────────────────────────────────────────
-// gridState[day][absoluteSlotIndex] = true/false
-// absolute slot index is relative to 00:00 across 24h (or 48h for overnight)
-let gridState = Array.from({length:7}, () => ({}))
-let gridStep  = parseInt(localStorage.getItem('appt_avail_step') || '15')
-let gridHalf  = localStorage.getItem('appt_avail_half') || 'day'
-let dragValue = null
+// gridState[day][absoluteSlotIndex] = true/false  (index relative to 00:00)
+let gridState  = Array.from({length:7}, () => ({}))
+let gridStep   = parseInt(localStorage.getItem('appt_avail_step') || '15')
+let gridPartIdx= parseInt(localStorage.getItem('appt_avail_part') || '1')  // default 08-16
+let dragValue  = null
 
-const halfCfg    = () => HALF_CFG[gridHalf]
-const halfHours  = () => halfCfg().end - halfCfg().start  // 12h each half
-const slotsInHalf= () => (halfHours() * 60) / gridStep
-const absSlot    = i  => Math.floor((halfCfg().start * 60) / gridStep) + i
+const part         = () => PARTS[gridPartIdx]
+const slotsPerHour = () => 60 / gridStep
+const slotsInPart  = () => 8 * slotsPerHour()
+const absSlot      = i => Math.round((part().start * 60) / gridStep) + i
+
+// does any slot in the given part have availability for any day?
+const partHasData  = pidx => {
+  const p = PARTS[pidx]
+  const from = Math.round((p.start * 60) / gridStep)
+  const to   = Math.round((p.end   * 60) / gridStep)
+  return gridState.some(row => {
+    for (let i = from; i < to; i++) if (row[i]) return true
+    return false
+  })
+}
 
 // ── encode/decode grid ↔ availability windows ─────────────────
 const gridToWindows = () => {
-  const total = Math.ceil(48 * 60 / gridStep)  // full 48h slot space
+  const total = Math.ceil(24 * 60 / gridStep)
   const wins  = []
   for (let day = 0; day < 7; day++) {
     let start = null
     for (let i = 0; i <= total; i++) {
       const on = !!gridState[day][i]
-      if (on && start === null) { start = i }
+      if (on  && start === null) start = i
       if (!on && start !== null) {
-        const fromM = (start * gridStep) % (24 * 60)
-        const toM   = (i     * gridStep) % (24 * 60)
+        const fromM = start * gridStep
+        const toM   = i     * gridStep
         wins.push({
           day,
           start_time: `${String(Math.floor(fromM/60)).padStart(2,'0')}:${String(fromM%60).padStart(2,'0')}`,
@@ -263,125 +274,148 @@ const windowsToGrid = rows => {
   rows.forEach(r => {
     const [fh,fm] = r.start_time.split(':').map(Number)
     const [th,tm] = r.end_time.split(':').map(Number)
-    const fromSlot = Math.round((fh*60+fm) / gridStep)
-    const toSlot   = Math.round((th*60+tm) / gridStep)
-    for (let i = fromSlot; i < toSlot; i++)
-      gridState[r.day][i] = true
+    const from = Math.round((fh*60+fm) / gridStep)
+    const to   = Math.round((th*60+tm) / gridStep)
+    for (let i = from; i < to; i++) gridState[r.day][i] = true
   })
 }
 
 // ── render grid ───────────────────────────────────────────────
 const renderGrid = () => {
-  const cfg      = halfCfg()
-  const slotsCnt = slotsInHalf()
-  const slotsPerHour = 60 / gridStep
-  const hours    = halfHours()
-  const grid     = document.getElementById('avail-grid')
+  const p    = part()
+  const sph  = slotsPerHour()
+  const sip  = slotsInPart()
+  const grid = document.getElementById('avail-grid')
 
-  // columns: 1 day-label col + N slot cols
-  grid.style.gridTemplateColumns = `36px repeat(${slotsCnt}, minmax(0, 1fr))`
+  // prev/next part indicators
+  const prevIdx = (gridPartIdx + 2) % 3
+  const nextIdx = (gridPartIdx + 1) % 3
+  const prevHas = partHasData(prevIdx)
+  const nextHas = partHasData(nextIdx)
 
-  // ── header row: corner + hour cells (each spans slotsPerHour cols)
-  let html = `<div class="ag-corner"></div>`
-  for (let h = 0; h < hours; h++) {
-    const absH = cfg.start + h
-    const label = `${String(absH % 24).padStart(2,'0')}`
-    html += `<div class="ag-hour-label" data-hstart="${h}" style="grid-column:span ${slotsPerHour}">${label}</div>`
+  // columns: indicator | day-label | slot-cols | indicator
+  grid.style.gridTemplateColumns = `18px 36px repeat(${sip}, minmax(0, 1fr)) 18px`
+
+  // ── header row
+  // left indicator corner
+  let html = `<div class="ag-ind-corner ag-ind-prev${prevHas?' has':''}"></div>`
+  // day-label corner
+  html += `<div class="ag-corner"></div>`
+  // hour cells
+  for (let h = 0; h < 8; h++) {
+    const absH  = p.start + h
+    const label = String(absH).padStart(2,'0')
+    html += `<div class="ag-hour-label" data-hstart="${h}" style="grid-column:span ${sph}">${label}</div>`
   }
+  // right indicator corner
+  html += `<div class="ag-ind-corner ag-ind-next${nextHas?' has':''}"></div>`
 
   // ── day rows
   for (let day = 0; day < 7; day++) {
+    // left indicator: does this day have data in prev part?
+    const prevDayHas = (() => {
+      const pp = PARTS[prevIdx]
+      const from = Math.round((pp.start * 60) / gridStep)
+      const to   = Math.round((pp.end   * 60) / gridStep)
+      for (let i = from; i < to; i++) if (gridState[day][i]) return true
+      return false
+    })()
+    const nextDayHas = (() => {
+      const np = PARTS[nextIdx]
+      const from = Math.round((np.start * 60) / gridStep)
+      const to   = Math.round((np.end   * 60) / gridStep)
+      for (let i = from; i < to; i++) if (gridState[day][i]) return true
+      return false
+    })()
+
+    html += `<div class="ag-ind-cell ag-ind-prev${prevDayHas?' has':''}"></div>`
     html += `<div class="ag-day-label" data-day="${day}">${DAY_LABELS[day]}</div>`
-    for (let i = 0; i < slotsCnt; i++) {
+
+    for (let i = 0; i < sip; i++) {
       const abs    = absSlot(i)
-      const isHour = i % slotsPerHour === 0 && i > 0
+      const isHour = i % sph === 0 && i > 0
       const on     = !!gridState[day][abs]
       html += `<div class="ag-cell${on?' on':''}${isHour?' hour-divider':''}" data-day="${day}" data-slot="${abs}"></div>`
     }
+
+    html += `<div class="ag-ind-cell ag-ind-next${nextDayHas?' has':''}"></div>`
   }
 
   grid.innerHTML = html
 
-  // ── row toggle (day label click) ─────────────────────────────
+  // ── row toggle
   grid.querySelectorAll('.ag-day-label').forEach(lbl => {
     lbl.onclick = () => {
-      const day  = +lbl.dataset.day
-      const any  = [...Array(slotsCnt)].some((_,i) => gridState[day][absSlot(i)])
-      const val  = !any   // if anything is on, clear; else fill
-      for (let i = 0; i < slotsCnt; i++) gridState[day][absSlot(i)] = val
+      const day = +lbl.dataset.day
+      const any = [...Array(sip)].some((_,i) => gridState[day][absSlot(i)])
+      const val = !any
+      for (let i = 0; i < sip; i++) gridState[day][absSlot(i)] = val
       renderGrid()
     }
   })
 
-  // ── col toggle (hour label click) ────────────────────────────
+  // ── col toggle
   grid.querySelectorAll('.ag-hour-label').forEach(lbl => {
     lbl.onclick = () => {
-      const hstart    = +lbl.dataset.hstart
-      const firstSlot = hstart * slotsPerHour
-      const any  = [...Array(slotsPerHour)].some((_,j) =>
-        gridState.some(row => row[absSlot(firstSlot + j)]))
-      const val  = !any
+      const h0  = +lbl.dataset.hstart * sph
+      const any = gridState.some(row =>
+        [...Array(sph)].some((_,j) => row[absSlot(h0 + j)]))
+      const val = !any
       for (let day = 0; day < 7; day++)
-        for (let j = 0; j < slotsPerHour; j++)
-          gridState[day][absSlot(firstSlot + j)] = val
+        for (let j = 0; j < sph; j++)
+          gridState[day][absSlot(h0 + j)] = val
       renderGrid()
     }
   })
 
-  // ── drag gesture ─────────────────────────────────────────────
+  // ── touch-safe drag painting ──────────────────────────────────
+  // We track pointer events rather than mouse+touch separately.
+  // pointermove fires even when pointer is captured, eliminating
+  // the elementFromPoint hack and the weird-registration problem.
   let dragging = false
-  const getCell = e => {
-    const t = e.target.closest('.ag-cell')
-    if (!t) return null
-    return { day: +t.dataset.day, slot: +t.dataset.slot }
+
+  const cellAt = el => {
+    const c = el?.closest?.('.ag-cell')
+    return c ? { day: +c.dataset.day, slot: +c.dataset.slot } : null
   }
   const applyCell = (day, slot, val) => {
     gridState[day][slot] = val
     const cell = grid.querySelector(`[data-day="${day}"][data-slot="${slot}"]`)
     if (cell) cell.classList.toggle('on', val)
   }
-  grid.addEventListener('mousedown', e => {
-    const c = getCell(e)
+
+  grid.addEventListener('pointerdown', e => {
+    const c = cellAt(e.target)
     if (!c) return
     e.preventDefault()
+    grid.setPointerCapture(e.pointerId)
     dragging  = true
     dragValue = !gridState[c.day][c.slot]
     applyCell(c.day, c.slot, dragValue)
   })
-  grid.addEventListener('mouseover', e => {
+  grid.addEventListener('pointermove', e => {
     if (!dragging) return
-    const c = getCell(e)
+    const el = document.elementFromPoint(e.clientX, e.clientY)
+    const c  = cellAt(el)
     if (c) applyCell(c.day, c.slot, dragValue)
   })
-  grid.addEventListener('touchstart', e => {
-    const touch = e.touches[0]
-    const el = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.ag-cell')
-    if (!el) return
-    dragging  = true
-    dragValue = !gridState[+el.dataset.day][+el.dataset.slot]
-    applyCell(+el.dataset.day, +el.dataset.slot, dragValue)
-  }, { passive: true })
-  grid.addEventListener('touchmove', e => {
-    if (!dragging) return
-    const touch = e.touches[0]
-    const el = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.ag-cell')
-    if (el) applyCell(+el.dataset.day, +el.dataset.slot, dragValue)
-  }, { passive: true })
-  document.addEventListener('mouseup',  () => { dragging = false })
-  document.addEventListener('touchend', () => { dragging = false })
+  grid.addEventListener('pointerup',     () => { dragging = false })
+  grid.addEventListener('pointercancel', () => { dragging = false })
 }
 
-// ── half switcher ─────────────────────────────────────────────
-const switchHalf = h => {
-  gridHalf = h
-  localStorage.setItem('appt_avail_half', h)
-  document.querySelectorAll('.half-btn').forEach(b =>
-    b.classList.toggle('active', b.dataset.half === h))
+// ── part cycle button ─────────────────────────────────────────
+const updatePartBtn = () => {
+  const btn = document.getElementById('part-cycle-btn')
+  if (btn) btn.textContent = part().label
+}
+const cyclePart = () => {
+  gridPartIdx = (gridPartIdx + 1) % 3
+  localStorage.setItem('appt_avail_part', gridPartIdx)
+  updatePartBtn()
   renderGrid()
 }
-document.querySelectorAll('.half-btn').forEach(b =>
-  b.onclick = () => switchHalf(b.dataset.half))
-switchHalf(gridHalf)
+document.getElementById('part-cycle-btn').onclick = cyclePart
+updatePartBtn()
 
 // ── step button controls ──────────────────────────────────────
 document.querySelectorAll('.step-btn').forEach(b => {
