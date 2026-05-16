@@ -25,7 +25,8 @@ jobs:
           EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}
         run: |
           npm install -g edgeone
-          edgeone pages deploy . \
-            --project apponi \
-            --token "$EDGEONE_TOKEN" \
+          mkdir -p dist && cp index.html dist/
+          edgeone pages deploy dist \
+            -n apponi \
+            -t "$EDGEONE_TOKEN" \
             --region global
