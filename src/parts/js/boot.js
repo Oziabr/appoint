@@ -24,4 +24,3 @@ document.getElementById('theme-switch').onclick = () => {
 
 route()
 
-</script>
