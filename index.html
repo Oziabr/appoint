@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Schedule</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ─── RESET & TOKENS ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+/* ── DARK (default) ── */
+:root {
+  --bg:       #060810;
+  --bg2:      #0a0d18;
+  --surface:  #0d1020;
+  --surface2: #111528;
+  --border:   #1a2040;
+  --border2:  #1e2850;
+  --ink:      #c8d8f0;
+  --muted:    #3d5070;
+  --dim:      #1a2540;
+  --accent:   #00e5ff;
+  --accent2:  #00ff88;
+  --danger:   #ff4060;
+  --warn:     #ffaa00;
+  --r:        2px;
+  --fhead:    'Orbitron', sans-serif;
+  --fmono:    'Space Mono', monospace;
+  --glow:     0 0 12px rgba(0,229,255,.35);
+  --glow2:    0 0 12px rgba(0,255,136,.35);
+}
+/* ── LIGHT (sunlight override) ── */
+html.light {
+  color-scheme: light;
+  --bg:       #f0f4ff;
+  --bg2:      #e8edf8;
+  --surface:  #ffffff;
+  --surface2: #eef1fa;
+  --border:   #c8d0e8;
+  --border2:  #b0bcd8;
+  --ink:      #0a0f28;
+  --muted:    #6070a0;
+  --dim:      #c0c8e0;
+  --accent:   #0055cc;
+  --accent2:  #007a40;
+  --danger:   #cc1a2e;
+  --warn:     #b86000;
+  --glow:     0 0 10px rgba(0,85,204,.2);
+  --glow2:    0 0 10px rgba(0,122,64,.2);
+}
+/* ── HOT ROD (Iron Man Hot Rod suit) ── */
+html.hotrod {
+  color-scheme: dark;
+  --bg:       #0f0604;
+  --bg2:      #160a06;
+  --surface:  #1a0c08;
+  --surface2: #200e09;
+  --border:   #3a1a10;
+  --border2:  #4a2218;
+  --ink:      #f0e0c8;
+  --muted:    #7a4a38;
+  --dim:      #2a1208;
+  --accent:   #cc2200;
+  --accent2:  #c8920a;
+  --danger:   #ff6644;
+  --warn:     #c8920a;
+  --glow:     0 0 14px rgba(204,34,0,.5);
+  --glow2:    0 0 14px rgba(200,146,10,.5);
+}
+html { font-size: 14px; color-scheme: dark }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--fmono);
+  font-size: 13px;
+  font-weight: 400;
+  min-height: 100vh;
+  line-height: 1.6;
+  /* grid overlay */
+  background-image:
+    linear-gradient(rgba(0,229,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+a { color: var(--accent); text-decoration: none }
+a:hover { color: #fff; text-shadow: var(--glow) }
+html.light a { color: var(--accent) }
+html.light a:hover { color: #003399; text-shadow: none; text-decoration: underline }
+
+button, input, textarea, select {
+  font-family: var(--fmono);
+  font-size: 12px;
+  font-weight: 400;
+}
+input, textarea, select {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--ink);
+  border-radius: var(--r);
+  padding: 10px 12px;
+  width: 100%;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+textarea { resize: vertical; min-height: 72px }
+label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: .14em;
+  color: var(--muted);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+.field { margin-bottom: 16px }
+h1 { font-family: var(--fhead); font-weight: 700; letter-spacing: .04em; text-transform: uppercase }
+h2 { font-family: var(--fhead); font-weight: 600; letter-spacing: .04em; text-transform: uppercase }
+
+/* ─── BUTTONS ────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 18px;
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  cursor: pointer;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--fhead);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  transition: all .15s;
+  white-space: nowrap;
+  position: relative;
+}
+.btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--glow);
+}
+.btn-primary {
+  background: transparent;
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+.btn-primary:hover {
+  background: var(--accent);
+  color: var(--bg);
+  box-shadow: 0 0 24px rgba(0,229,255,.6);
+}
+.btn-ghost { border-color: transparent; color: var(--muted) }
+.btn-ghost:hover { color: var(--accent); border-color: transparent; box-shadow: none }
+.btn-danger { color: var(--danger); border-color: var(--danger) }
+.btn-danger:hover { background: var(--danger); color: var(--bg); box-shadow: 0 0 12px rgba(255,64,96,.4) }
+.btn:disabled { opacity: .3; cursor: default; box-shadow: none }
+.btn-sm { padding: 5px 12px; font-size: 9px }
+
+/* ─── BRACKET PANEL (core UI frame) ─────────────────────── */
+/* Usage: add class="panel" and optionally data-label="TITLE" */
+.panel {
+  position: relative;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  overflow: visible;
+}
+/* corner brackets */
+.panel::before, .panel::after {
+  content: '';
+  position: absolute;
+  width: 10px; height: 10px;
+  border-color: var(--accent);
+  border-style: solid;
+  z-index: 2;
+}
+.panel::before { top: -1px; left: -1px; border-width: 2px 0 0 2px }
+.panel::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0 }
+
+.panel-head {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--surface2);
+  position: relative;
+}
+/* top-right bracket corner on panel-head */
+.panel-head::before {
+  content: '';
+  position: absolute;
+  top: -1px; right: -1px;
+  width: 10px; height: 10px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+}
+.panel-head h2 {
+  font-size: 10px;
+  letter-spacing: .16em;
+  color: var(--accent);
+}
+.panel-body { padding: 20px; overflow: hidden }
+
+/* ─── LAYOUT ─────────────────────────────────────────────── */
+.shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.topbar {
+  border-bottom: 1px solid var(--border2);
+  padding: 14px 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  position: relative;
+}
+.topbar::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0;
+  width: 60px; height: 2px;
+  background: var(--accent);
+  box-shadow: var(--glow);
+}
+.topbar-brand {
+  font-family: var(--fhead);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .2em;
+  color: var(--accent);
+  text-transform: uppercase;
+  text-shadow: var(--glow);
+  flex: 1;
+  min-width: 0;
+}
+.topbar-user {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: .06em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+}
+.topbar-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0 }
+@media (max-width: 480px) { .topbar-user { display: none } }
+
+/* ─── VIEWS ──────────────────────────────────────────────── */
+.view { display: none }
+.view.active { display: block }
+
+/* ─── AUTH VIEW ──────────────────────────────────────────── */
+#view-auth {
+  display: none;
+  min-height: 100vh;
+  place-items: center;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 60%, rgba(0,229,255,.06) 0%, transparent 70%),
+    var(--bg);
+}
+#view-auth.active { display: grid }
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 40px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  position: relative;
+}
+/* all four corners on auth card */
+.auth-card::before, .auth-card::after,
+.auth-card .corner-bl, .auth-card .corner-tr {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  border-color: var(--accent);
+  border-style: solid;
+}
+.auth-card::before { top: -1px; left: -1px;   border-width: 2px 0 0 2px }
+.auth-card::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0 }
+.auth-card h1 { font-size: 18px; margin-bottom: 6px; color: var(--accent); text-shadow: var(--glow) }
+.auth-card > p { color: var(--muted); font-size: 11px; margin-bottom: 28px; letter-spacing: .06em }
+.auth-err { color: var(--danger); font-size: 11px; margin-top: 10px; letter-spacing: .04em }
+.auth-toggle { margin-top: 16px; font-size: 11px; color: var(--muted); text-align: center }
+
+/* ─── HOST DASHBOARD ─────────────────────────────────────── */
+#view-host { padding: 40px 0 80px }
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 32px;
+}
+@media (max-width: 700px) { .dash-grid { grid-template-columns: 1fr } }
+
+/* Meeting type cards */
+.mtype-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.mtype-card:last-child { border-bottom: none; padding-bottom: 0 }
+.mtype-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+.mtype-info { flex: 1; min-width: 0 }
+.mtype-name { font-size: 12px; font-weight: 700; letter-spacing: .04em }
+.mtype-dur  { font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: .06em }
+.mtype-actions { display: flex; gap: 6px }
+
+/* Availability rows */
+.avail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+}
+.avail-row:last-child { border-bottom: none }
+.avail-day  { width: 28px; color: var(--accent); font-weight: 700; font-size: 10px; letter-spacing: .08em }
+.avail-time { flex: 1; letter-spacing: .06em }
+
+/* Upcoming bookings */
+.booking-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.booking-row:last-child { border-bottom: none }
+.booking-row .btime  { font-size: 10px; color: var(--accent); letter-spacing: .1em; text-shadow: var(--glow) }
+.booking-row .bguest { font-size: 12px; margin-top: 3px; font-weight: 700 }
+.booking-row .bmeta  { font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: .04em }
+
+/* Inline form */
+.inline-form {
+  background: var(--bg2);
+  border: 1px dashed var(--border2);
+  padding: 16px;
+  margin-top: 12px;
+  position: relative;
+}
+
+/* ─── BOOKING / GUEST VIEW ───────────────────────────────── */
+#view-book {
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+.book-shell {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+.book-header {
+  padding: 40px 0 28px;
+  border-bottom: 1px solid var(--border2);
+  margin-bottom: 36px;
+  position: relative;
+}
+.book-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0;
+  width: 80px; height: 2px;
+  background: var(--accent);
+  box-shadow: var(--glow);
+}
+.book-header h1 { font-size: clamp(18px, 3.5vw, 28px); color: var(--ink) }
+.book-header p  { color: var(--muted); margin-top: 8px; font-size: 12px; letter-spacing: .06em }
+
+/* Meeting type picker */
+.mtype-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 36px;
+}
+.mtype-pill {
+  padding: 16px;
+  border: 1px solid var(--border2);
+  cursor: pointer;
+  transition: all .15s;
+  background: var(--surface);
+  position: relative;
+}
+.mtype-pill::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 8px; height: 8px;
+  border-top: 1px solid var(--accent);
+  border-left: 1px solid var(--accent);
+  opacity: 0;
+  transition: opacity .15s;
+}
+.mtype-pill:hover::before, .mtype-pill.selected::before { opacity: 1 }
+.mtype-pill:hover { border-color: var(--accent); box-shadow: var(--glow) }
+.mtype-pill.selected { border-color: var(--accent); background: rgba(0,229,255,.05); box-shadow: var(--glow) }
+.mtype-pill .pill-name { font-size: 11px; font-weight: 700; letter-spacing: .06em; margin-bottom: 4px; text-transform: uppercase }
+.mtype-pill .pill-dur  { font-size: 10px; color: var(--muted); letter-spacing: .06em }
+.mtype-pill .pill-bar  { height: 1px; margin-top: 12px; opacity: .6 }
+
+/* Calendar */
+.cal-wrap { margin-bottom: 32px }
+.cal-nav {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 16px;
+}
+.cal-nav .month-label {
+  font-family: var(--fhead);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  flex: 1;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+.cal-dow {
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: .14em;
+  color: var(--muted);
+  padding-bottom: 8px;
+  text-transform: uppercase;
+}
+.cal-cell {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all .12s;
+  position: relative;
+  letter-spacing: .04em;
+}
+.cal-cell:hover:not(.empty):not(.past) {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: inset 0 0 12px rgba(0,229,255,.08);
+}
+.cal-cell.today { border-color: var(--border2) }
+.cal-cell.selected {
+  background: rgba(0,229,255,.12);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--glow), inset 0 0 16px rgba(0,229,255,.1);
+}
+.cal-cell.past   { color: var(--dim); cursor: default }
+.cal-cell.empty  { cursor: default }
+.cal-cell.has-slots::after {
+  content: '';
+  width: 3px; height: 3px;
+  background: var(--accent2);
+  border-radius: 50%;
+  position: absolute;
+  bottom: 4px;
+  box-shadow: var(--glow2);
+}
+
+/* Slots */
+.slots-header {
+  font-size: 9px;
+  letter-spacing: .18em;
+  color: var(--muted);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+  gap: 6px;
+  margin-bottom: 32px;
+}
+.slot-btn {
+  padding: 10px 6px;
+  text-align: center;
+  border: 1px solid var(--border2);
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--fmono);
+  font-size: 12px;
+  letter-spacing: .06em;
+  transition: all .12s;
+  animation: fadeUp .18s both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(8px) }
+  to   { opacity:1; transform: translateY(0) }
+}
+.slot-btn:hover   { border-color: var(--accent); color: var(--accent); box-shadow: var(--glow) }
+.slot-btn.picked  {
+  background: rgba(0,229,255,.1);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+.slot-btn.taken   { opacity: .2; cursor: not-allowed; text-decoration: line-through }
+
+/* Guest form */
+.guest-form {
+  max-width: 440px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  padding: 28px;
+  animation: fadeUp .25s both;
+  position: relative;
+}
+.guest-form::before, .guest-form::after {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+  border-color: var(--accent);
+  border-style: solid;
+}
+.guest-form::before { top: -1px; left: -1px; border-width: 2px 0 0 2px }
+.guest-form::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0 }
+.guest-form h2 { font-size: 13px; margin-bottom: 4px; color: var(--accent) }
+.guest-form .summary { font-size: 10px; color: var(--accent2); margin-bottom: 22px; letter-spacing: .06em; text-shadow: var(--glow2) }
+
+/* Confirmation */
+.confirm-box {
+  max-width: 460px;
+  margin: 60px auto;
+  text-align: center;
+  padding: 48px 32px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  position: relative;
+}
+.confirm-box::before, .confirm-box::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  border-color: var(--accent2);
+  border-style: solid;
+}
+.confirm-box::before { top: -1px; left: -1px; border-width: 2px 0 0 2px }
+.confirm-box::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0 }
+.confirm-box .checkmark { font-size: 28px; margin-bottom: 16px; color: var(--accent2); text-shadow: var(--glow2) }
+.confirm-box h2 { font-size: 16px; margin-bottom: 10px; color: var(--accent2) }
+.confirm-box p  { color: var(--muted); font-size: 12px; line-height: 1.8 }
+.confirm-id { font-size: 10px; color: var(--muted); margin-top: 16px; letter-spacing: .1em }
+
+/* ─── MISC ───────────────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 1px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .5s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg) } }
+.empty-note { color: var(--muted); font-size: 11px; letter-spacing: .06em }
+.err-msg    { color: var(--danger); font-size: 11px; margin-top: 8px; letter-spacing: .04em }
+.tag {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: .12em;
+  padding: 2px 8px;
+  border: 1px solid;
+  text-transform: uppercase;
+}
+.tag-gold  { border-color: var(--accent);  color: var(--accent);  box-shadow: var(--glow) }
+.tag-green { border-color: var(--accent2); color: var(--accent2); box-shadow: var(--glow2) }
+hr { border: none; border-top: 1px solid var(--border2); margin: 28px 0 }
+
+/* ─── MODAL ──────────────────────────────────────────────── */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(6,8,16,.85);
+  backdrop-filter: blur(6px);
+  display: grid; place-items: center;
+  z-index: 100;
+  padding: 20px;
+}
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  padding: 28px;
+  width: 100%; max-width: 420px;
+  position: relative;
+}
+.modal::before, .modal::after {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+  border-color: var(--accent);
+  border-style: solid;
+}
+.modal::before { top: -1px; left: -1px; border-width: 2px 0 0 2px }
+.modal::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0 }
+.modal h2 { font-size: 12px; margin-bottom: 20px; color: var(--accent); letter-spacing: .1em }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px }
+
+
+/* ─── AVATAR PICKER ─────────────────────────────────────────── */
+.avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.avatar-preview {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--surface2);
+}
+.avatar-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.avatar-opt {
+  padding: 5px 12px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--fhead);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .15s;
+}
+.avatar-opt:hover { border-color: var(--accent); color: var(--accent) }
+.avatar-opt.active { border-color: var(--accent); color: var(--accent); box-shadow: var(--glow) }
+
+/* ─── THEME SWITCH ───────────────────────────────────────────── */
+#theme-switch {
+  position: fixed;
+  bottom: 16px; left: 16px;
+  z-index: 200;
+  width: 40px; height: 40px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 16px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all .2s;
+  box-shadow: var(--glow);
+}
+#theme-switch:hover {
+  background: var(--accent);
+  color: var(--bg);
+  box-shadow: 0 0 20px rgba(0,229,255,.5);
+}
+html.light #theme-switch:hover {
+  box-shadow: 0 0 20px rgba(0,85,204,.3);
+}
+/* ── light mode buttons ── */
+html.light .btn {
+  color: var(--ink);
+  border-color: var(--border2);
+}
+html.light .btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,85,204,.08);
+  box-shadow: 0 0 0 2px rgba(0,85,204,.2), 0 2px 8px rgba(0,85,204,.12);
+}
+html.light .btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(0,85,204,.35);
+}
+html.light .btn-primary:hover {
+  background: #fff;
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 4px 16px rgba(0,85,204,.3), 0 0 0 2px var(--accent);
+}
+html.light .btn-ghost {
+  color: var(--muted);
+  border-color: transparent;
+}
+html.light .btn-ghost:hover {
+  color: var(--accent);
+  border-color: rgba(0,85,204,.3);
+  background: rgba(0,85,204,.06);
+  box-shadow: none;
+}
+html.light .btn-danger {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: transparent;
+}
+html.light .btn-danger:hover {
+  background: var(--danger);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(204,26,46,.3);
+}
+html.light .avatar-opt {
+  color: var(--muted);
+  border-color: var(--border2);
+}
+html.light .avatar-opt:hover,
+html.light .avatar-opt.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0,85,204,.12);
+}
+/* grid overlay adapts to light */
+html.light body {
+  background-image:
+    linear-gradient(rgba(0,85,204,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,85,204,.04) 1px, transparent 1px);
+}
+/* inputs in light mode */
+html.light input,
+html.light textarea,
+html.light select {
+  background: var(--surface);
+  color: var(--ink);
+}
+/* slot buttons */
+html.light .slot-btn { background: var(--surface) }
+/* inline form */
+html.light .inline-form { background: var(--bg2) }
+
+
+/* ── card base reset for canvas overlay ── */
+html.hotrod .panel,
+html.hotrod .auth-card,
+html.hotrod .guest-form,
+html.hotrod .modal,
+html.hotrod .confirm-box {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  position: relative;
+  isolation: isolate;
+}
+html.hotrod .panel::before, html.hotrod .panel::after,
+html.hotrod .auth-card::before, html.hotrod .auth-card::after,
+html.hotrod .guest-form::before, html.hotrod .guest-form::after,
+html.hotrod .confirm-box::before, html.hotrod .confirm-box::after,
+html.hotrod .modal::before, html.hotrod .modal::after {
+  display: none !important;
+}
+/* ═══════════════════════════════════════════════════════════
+   HOT ROD — JARVIS / STARK HUD
+   Variables do the heavy lifting — this block overrides
+   every token-driven style with the red/gold palette,
+   adds the hex-grid body, and swaps fonts.
+   Structure identical to dark/light themes.
+═══════════════════════════════════════════════════════════ */
+
+/* ── body: hex grid + scanlines + arc-reactor glow ──────── */
+html.hotrod body {
+  background-color: var(--bg);
+  background-image:
+    repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(204,34,0,.018) 3px, rgba(204,34,0,.018) 4px
+    ),
+    repeating-linear-gradient(
+      60deg,
+      rgba(204,34,0,.055) 0px, transparent 1px,
+      transparent 28px, rgba(204,34,0,.055) 29px
+    ),
+    repeating-linear-gradient(
+      -60deg,
+      rgba(204,34,0,.055) 0px, transparent 1px,
+      transparent 28px, rgba(204,34,0,.055) 29px
+    ),
+    radial-gradient(ellipse 65% 55% at 50% 115%,
+      rgba(220,60,0,.22) 0%, rgba(180,20,0,.08) 40%, transparent 70%
+    );
+  background-size: auto, 32px 56px, 32px 56px, 100% 100%;
+  background-attachment: fixed, fixed, fixed, fixed;
+}
+
+/* ── fonts: inherit base theme fonts ────────────────────── */
+
+/* ── links ───────────────────────────────────────────────── */
+html.hotrod a { color: var(--accent) }
+html.hotrod a:hover { color: #ff6644; text-shadow: var(--glow); text-decoration: none }
+
+/* ── auth view radial ────────────────────────────────────── */
+html.hotrod #view-auth {
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 60%, rgba(204,34,0,.08) 0%, transparent 70%),
+    var(--bg);
+}
+
+/* ── modal backdrop ──────────────────────────────────────── */
+html.hotrod .modal-bg { background: rgba(10,2,0,.88) }
+
+/* ── topbar ──────────────────────────────────────────────── */
+html.hotrod .topbar { border-bottom-color: var(--border2) }
+html.hotrod .topbar::after {
+  background: linear-gradient(90deg, var(--accent), transparent);
+  box-shadow: var(--glow);
+  width: 80px;
+}
+
+/* ── book header accent line ─────────────────────────────── */
+html.hotrod .book-header { border-bottom-color: var(--border2) }
+html.hotrod .book-header::after {
+  background: linear-gradient(90deg, var(--accent), transparent);
+  box-shadow: none;
+  width: 80px;
+  height: 2px;
+  opacity: .7;
+}
+
+/* ── panels ──────────────────────────────────────────────── */
+html.hotrod .panel {
+  background: linear-gradient(160deg, var(--surface) 0%, var(--bg2) 100%);
+  border-color: var(--border2);
+  box-shadow: 0 0 20px rgba(204,34,0,.08), inset 0 0 30px rgba(0,0,0,.4);
+}
+html.hotrod .panel::before,
+html.hotrod .panel::after { border-color: var(--accent2) }
+html.hotrod .panel-head {
+  background: linear-gradient(90deg, rgba(204,34,0,.18) 0%, var(--surface2) 100%);
+  border-bottom-color: var(--border2);
+}
+html.hotrod .panel-head::before { border-color: var(--accent2) }
+
+/* ── auth card ───────────────────────────────────────────── */
+html.hotrod .auth-card {
+  background: linear-gradient(150deg, var(--surface) 0%, var(--bg) 100%);
+  border-color: var(--border2);
+  box-shadow: 0 0 48px rgba(204,34,0,.14), 0 0 120px rgba(204,34,0,.05), inset 0 0 40px rgba(0,0,0,.5);
+}
+html.hotrod .auth-card::before,
+html.hotrod .auth-card::after { border-color: var(--accent2) }
+
+/* ── guest form ──────────────────────────────────────────── */
+html.hotrod .guest-form {
+  background: linear-gradient(150deg, var(--surface) 0%, var(--bg2) 100%);
+  border-color: var(--border2);
+  box-shadow: 0 0 28px rgba(204,34,0,.1);
+}
+html.hotrod .guest-form::before,
+html.hotrod .guest-form::after { border-color: var(--accent2) }
+
+/* ── confirm box ─────────────────────────────────────────── */
+html.hotrod .confirm-box {
+  background: linear-gradient(150deg, var(--surface) 0%, var(--bg) 100%);
+  border-color: rgba(200,146,10,.45);
+  box-shadow: 0 0 40px rgba(200,146,10,.12);
+}
+html.hotrod .confirm-box::before,
+html.hotrod .confirm-box::after { border-color: var(--accent2) }
+
+/* ── modal ───────────────────────────────────────────────── */
+html.hotrod .modal {
+  background: linear-gradient(150deg, var(--surface) 0%, var(--bg) 100%);
+  border-color: var(--border2);
+  box-shadow: 0 0 32px rgba(204,34,0,.12);
+}
+html.hotrod .modal::before,
+html.hotrod .modal::after { border-color: var(--accent2) }
+
+/* ── inline form ─────────────────────────────────────────── */
+html.hotrod .inline-form {
+  background: rgba(204,34,0,.05);
+  border-color: rgba(204,34,0,.25);
+}
+
+/* ── inputs ──────────────────────────────────────────────── */
+html.hotrod input,
+html.hotrod textarea,
+html.hotrod select {
+  background: rgba(204,34,0,.05);
+  border-color: var(--border2);
+  color: var(--ink);
+}
+html.hotrod input:focus,
+html.hotrod textarea:focus,
+html.hotrod select:focus {
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+  background: rgba(204,34,0,.09);
+}
+
+/* ── buttons ─────────────────────────────────────────────── */
+html.hotrod .btn { border-radius: 0 }
+html.hotrod .btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--glow);
+  background: rgba(204,34,0,.08);
+}
+html.hotrod .btn-primary {
+  color: var(--accent);
+  border-color: rgba(204,34,0,.55);
+  background: rgba(204,34,0,.1);
+  box-shadow: var(--glow);
+}
+html.hotrod .btn-primary:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 28px rgba(204,34,0,.8), 0 0 60px rgba(204,34,0,.25);
+}
+html.hotrod .btn-ghost { color: var(--muted) }
+html.hotrod .btn-ghost:hover {
+  color: var(--accent);
+  border-color: rgba(204,34,0,.3);
+  background: rgba(204,34,0,.06);
+  box-shadow: none;
+}
+html.hotrod .btn-danger { color: var(--danger); border-color: var(--danger) }
+html.hotrod .btn-danger:hover { background: var(--danger); color: #fff; box-shadow: 0 0 12px rgba(255,102,68,.4) }
+
+/* ── meeting type pills ──────────────────────────────────── */
+html.hotrod .mtype-pill {
+  background: var(--surface);
+  border-color: var(--border2);
+  border-radius: 0;
+}
+html.hotrod .mtype-pill::before { border-color: var(--accent2) }
+html.hotrod .mtype-pill:hover {
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+  background: var(--surface2);
+}
+html.hotrod .mtype-pill.selected {
+  border-color: var(--accent);
+  background: rgba(204,34,0,.1);
+  box-shadow: var(--glow);
+}
+
+/* ── slots ───────────────────────────────────────────────── */
+html.hotrod .slot-btn {
+  background: var(--surface);
+  border-color: var(--border2);
+  border-radius: 0;
+  color: var(--ink);
+}
+html.hotrod .slot-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--glow);
+  background: rgba(204,34,0,.1);
+}
+html.hotrod .slot-btn.picked {
+  background: rgba(204,34,0,.18);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+
+/* ── calendar ────────────────────────────────────────────── */
+html.hotrod .cal-cell { border-radius: 0 }
+html.hotrod .cal-cell:hover:not(.empty):not(.past) {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: inset 0 0 12px rgba(204,34,0,.08);
+}
+html.hotrod .cal-cell.today { border-color: var(--border2) }
+html.hotrod .cal-cell.selected {
+  background: rgba(204,34,0,.18);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--glow), inset 0 0 16px rgba(204,34,0,.1);
+}
+
+/* ── misc ────────────────────────────────────────────────── */
+html.hotrod hr { border-top-color: var(--border2) }
+html.hotrod .spinner { border-color: var(--border2); border-top-color: var(--accent) }
+html.hotrod .avatar-opt { border-radius: 0; border-color: var(--border2); color: var(--muted) }
+html.hotrod .avatar-opt:hover { border-color: var(--accent); color: var(--accent) }
+html.hotrod .avatar-opt.active { border-color: var(--accent); color: var(--accent); box-shadow: var(--glow) }
+html.hotrod .avatar-preview { border-color: var(--border2) }
+html.hotrod .mtype-card { border-bottom-color: var(--border) }
+html.hotrod .avail-row { border-bottom-color: var(--border) }
+html.hotrod .booking-row { border-bottom-color: var(--border) }
+
+/* ── theme switch ────────────────────────────────────────── */
+html.hotrod #theme-switch {
+  border-color: rgba(204,34,0,.4);
+  background: rgba(204,34,0,.08);
+  color: var(--accent2);
+  box-shadow: var(--glow2);
+  border-radius: 0;
+}
+html.hotrod #theme-switch:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 24px rgba(204,34,0,.8);
+}
+
+/* ─── CORNER RIBBON (staging only) ──────────────────────────── */
+#stage-ribbon {
+  display: none;
+  position: fixed;
+  top: 22px; right: -28px;
+  z-index: 999;
+  width: 120px;
+  padding: 5px 0;
+  background: var(--warn);
+  color: var(--bg);
+  font-family: var(--fhead);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .2em;
+  text-align: center;
+  transform: rotate(45deg);
+  transform-origin: center;
+  box-shadow: 0 0 16px rgba(255,170,0,.5);
+  pointer-events: none;
+}
+/* ─── VERSION TAG ────────────────────────────────────────────── */
+#version-tag {
+  position: fixed;
+  bottom: 12px; right: 16px;
+  font-family: var(--fmono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  color: var(--muted);
+  pointer-events: none;
+  z-index: 10;
+}
+</style>
+</head>
+<body>
+
+<!-- ── FIXED CHROME (present on all views) ───────────────────── -->
+<button id="theme-switch" title="Toggle light/dark">☀</button>
+<div id="stage-ribbon">STAGE</div>
+<div id="version-tag">appoint v1.0</div>
+
+<!-- ── AUTH VIEW ────────────────────────────────────────────── -->
+<div id="view-auth" class="view">
+  <div class="auth-card">
+    <h1>Schedule</h1>
+    <p id="auth-sub">Host sign in</p>
+    <form id="auth-form" autocomplete="on" novalidate>
+      <div class="field">
+        <label>EMAIL</label>
+        <input id="auth-email" type="email" name="email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="field" id="pw-field">
+        <label>PASSWORD</label>
+        <input id="auth-pw" type="password" name="password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <div class="field" id="name-field" style="display:none">
+        <label>YOUR NAME</label>
+        <input id="auth-name" type="text" name="name" placeholder="Alex Morgan" autocomplete="name"/>
+      </div>
+      <button class="btn btn-primary" id="auth-btn" type="submit" style="width:100%">Sign in</button>
+    </form>
+    <div class="auth-err" id="auth-err"></div>
+    <div class="auth-toggle">
+      <a href="#" id="auth-toggle-link">Create a host account →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── HOST DASHBOARD ────────────────────────────────────────── -->
+<div id="view-host" class="view">
+  <div class="shell">
+    <div class="topbar">
+      <span class="topbar-brand">Schedule</span>
+      <span class="topbar-user" id="host-email-label"></span>
+      <div class="topbar-actions">
+        <a href="#" class="btn btn-ghost btn-sm" id="share-link-btn" target="_blank" rel="noopener">🔗 Booking link</a>
+        <button class="btn btn-ghost btn-sm" id="signout-btn">Sign out</button>
+      </div>
+    </div>
+
+    <div style="margin-top:32px">
+      <h1 style="font-size:28px">Dashboard</h1>
+      <p style="color:var(--muted);margin-top:4px;font-size:13px">Manage your availability and meeting types.</p>
+    </div>
+
+    <div class="dash-grid">
+      <!-- Meeting types -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Meeting types</h2>
+          <button class="btn btn-sm" id="add-type-btn">+ Add</button>
+        </div>
+        <div class="panel-body">
+          <div id="types-list"><span class="spinner"></span></div>
+          <div class="inline-form" id="type-form" style="display:none">
+            <div class="field"><label>NAME</label><input id="tf-name" placeholder="30-min intro call"/></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+              <div class="field"><label>DURATION (min)</label><input id="tf-dur" type="number" value="30" min="5" max="480"/></div>
+              <div class="field"><label>POST-MEETING (min)</label><input id="tf-post" type="number" value="0" min="0" max="120" title="Buffer after meeting, hidden from guests"/></div>
+              <div class="field"><label>STEP (min)</label><input id="tf-step" type="number" value="" min="1" max="120" placeholder="auto" title="Slot start interval; default 10 for &lt;60 min, 30 for longer"/></div>
+            </div>
+            <div class="field"><label>DESCRIPTION (optional)</label><input id="tf-desc" placeholder="Brief description"/></div>
+            <div class="field">
+              <label>COLOR</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap" id="color-picker"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <button class="btn btn-primary btn-sm" id="tf-save">Save</button>
+              <button class="btn btn-ghost btn-sm" id="tf-cancel">Cancel</button>
+            </div>
+            <div class="err-msg" id="tf-err"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Availability -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Weekly availability</h2>
+          <button class="btn btn-sm" id="add-avail-btn">+ Add</button>
+        </div>
+        <div class="panel-body">
+          <div id="avail-list"><span class="spinner"></span></div>
+          <div class="inline-form" id="avail-form" style="display:none">
+            <div class="field">
+              <label>DAY</label>
+              <select id="af-day">
+                <option value="0">Sunday</option><option value="1">Monday</option>
+                <option value="2">Tuesday</option><option value="3">Wednesday</option>
+                <option value="4">Thursday</option><option value="5">Friday</option>
+                <option value="6">Saturday</option>
+              </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="field"><label>FROM</label><input id="af-from" type="time" value="09:00"/></div>
+              <div class="field"><label>TO</label>  <input id="af-to"   type="time" value="17:00"/></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary btn-sm" id="af-save">Save</button>
+              <button class="btn btn-ghost btn-sm"   id="af-cancel">Cancel</button>
+            </div>
+            <div class="err-msg" id="af-err"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile -->
+      <div class="panel">
+        <div class="panel-head"><h2>Profile</h2></div>
+        <div class="panel-body">
+          <div class="avatar-row">
+            <img id="pf-avatar" class="avatar-preview" src="" alt="avatar"/>
+            <div>
+              <div class="slots-header" style="margin-bottom:8px">PROFILE PICTURE</div>
+              <div class="avatar-options">
+                <button class="avatar-opt" data-src="initials">Initials</button>
+                <button class="avatar-opt" data-src="gravatar">Gravatar</button>
+              </div>
+            </div>
+          </div>
+          <div class="field"><label>NAME</label><input id="pf-name" placeholder="Your name"/></div>
+          <div class="field"><label>BIO (shown to guests)</label><textarea id="pf-bio" rows="3" placeholder="Brief intro…"></textarea></div>
+          <div class="field"><label>TIMEZONE</label>
+            <select id="pf-tz"></select>
+          </div>
+          <button class="btn btn-primary btn-sm" id="pf-save">Save profile</button>
+          <div class="err-msg" id="pf-err"></div>
+        </div>
+      </div>
+
+      <!-- Upcoming bookings -->
+      <div class="panel">
+        <div class="panel-head"><h2>Upcoming bookings</h2></div>
+        <div class="panel-body">
+          <div id="bookings-list"><span class="spinner"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── BOOKING / GUEST VIEW ───────────────────────────────────── -->
+<div id="view-book" class="view">
+  <div class="book-shell">
+    <div class="book-header">
+      <h1 id="bk-host-name">Book a meeting</h1>
+      <p id="bk-host-bio"></p>
+    </div>
+
+    <!-- Step 1: meeting type -->
+    <div id="bk-step-type">
+      <div class="slots-header">SELECT A MEETING TYPE</div>
+      <div class="mtype-grid" id="bk-types"></div>
+    </div>
+
+    <!-- Step 2: calendar + slots -->
+    <div id="bk-step-cal" style="display:none">
+      <hr/>
+      <div class="cal-wrap">
+        <div class="cal-nav">
+          <span class="month-label" id="cal-month-label"></span>
+          <button class="btn btn-ghost btn-sm" id="cal-prev">←</button>
+          <button class="btn btn-ghost btn-sm" id="cal-next">→</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+
+      <div id="bk-step-slots" style="display:none">
+        <div class="slots-header" id="slots-header"></div>
+        <div class="slots-grid" id="slots-grid"></div>
+      </div>
+    </div>
+
+    <!-- Step 3: guest details form -->
+    <div id="bk-step-form" style="display:none">
+      <hr/>
+      <div class="guest-form">
+        <h2>Your details</h2>
+        <div class="summary" id="bk-summary"></div>
+        <div class="field"><label>YOUR NAME *</label><input id="gf-name" type="text" autocomplete="name"/></div>
+        <div class="field"><label>EMAIL *</label><input id="gf-email" type="email" autocomplete="email"/></div>
+        <div class="field"><label>NOTES (optional)</label><textarea id="gf-notes" placeholder="Anything I should know…"></textarea></div>
+        <button class="btn btn-primary" id="gf-submit" style="width:100%">Confirm booking</button>
+        <div class="err-msg" id="gf-err"></div>
+      </div>
+    </div>
+
+    <!-- Step 4: confirmation -->
+    <div id="bk-step-done" style="display:none">
+      <div class="confirm-box">
+        <div class="checkmark">✦</div>
+        <h2>You're booked</h2>
+        <p id="confirm-body"></p>
+        <div class="confirm-id" id="confirm-id"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL (generic) ───────────────────────────────────────── -->
+<div class="modal-bg" id="modal-bg" style="display:none">
+  <div class="modal">
+    <h2 id="modal-title"></h2>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modal-cancel">Close</button>
+      <button class="btn btn-primary" id="modal-ok" style="display:none">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG — replace these ─────────────────────────────────────
+const SUPABASE_URL  = '__SUPABASE_URL__'
+const SUPABASE_ANON = '__SUPABASE_ANON__'
+// ──────────────────────────────────────────────────────────────
+
+const sb  = supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
+
+// ?env=stage rewires all table and function names to appt_stage_*
+const ENV    = new URLSearchParams(location.search).get('env') === 'stage' ? 'stage' : 'prod'
+const TABLES = {
+  hosts:    ENV === 'stage' ? 'appt_stage_hosts'                : 'appt_hosts',
+  types:    ENV === 'stage' ? 'appt_stage_meeting_types'        : 'appt_meeting_types',
+  avail:    ENV === 'stage' ? 'appt_stage_availability_windows' : 'appt_availability_windows',
+  bookings: ENV === 'stage' ? 'appt_stage_bookings'             : 'appt_bookings',
+  rpc:      ENV === 'stage' ? 'appt_stage_booked_ranges'        : 'appt_booked_ranges',
+}
+const db = t => sb.from(TABLES[t])
+
+// ══════════════════════════════════════════════════════════════
+// ROUTER
+// ══════════════════════════════════════════════════════════════
+const showView = id => {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'))
+  document.getElementById(id).classList.add('active')
+}
+
+const COLORS = ['#c8a96e','#8fb89a','#7a9eba','#b89a7a','#a87ab8','#b87a7a','#7ab8b0']
+let selectedColor = COLORS[0]
+
+const route = async () => {
+  const params = new URLSearchParams(location.search)
+  const hostId = params.get('host')
+  if (hostId) return initBookingView(hostId)
+
+  const { data: { session } } = await sb.auth.getSession()
+  if (session) return initHostDash(session)
+  showView('view-auth')
+  initAuth()
+}
+
+// ══════════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════════
+let authMode = 'signin'
+
+const initAuth = () => {
+  document.getElementById('auth-toggle-link').onclick = e => {
+    e.preventDefault()
+    authMode = authMode === 'signin' ? 'signup' : 'signin'
+    const isUp = authMode === 'signup'
+    document.getElementById('auth-sub').textContent = isUp ? 'Create a host account' : 'Host sign in'
+    document.getElementById('auth-btn').textContent  = isUp ? 'Create account' : 'Sign in'
+    document.getElementById('auth-toggle-link').textContent = isUp ? '← Back to sign in' : 'Create a host account →'
+    document.getElementById('name-field').style.display = isUp ? '' : 'none'
+    document.getElementById('auth-pw').autocomplete = isUp ? 'new-password' : 'current-password'
+    document.getElementById('auth-err').textContent = ''
+  }
+
+  document.getElementById('auth-form').onsubmit = async e => {
+    e.preventDefault()
+    const email = document.getElementById('auth-email').value.trim()
+    const pw    = document.getElementById('auth-pw').value
+    const name  = document.getElementById('auth-name').value.trim()
+    const errEl = document.getElementById('auth-err')
+    errEl.textContent = ''
+
+    if (!email || !pw) { errEl.textContent = 'Email and password required.'; return }
+
+    const btn = document.getElementById('auth-btn')
+    btn.disabled = true; btn.textContent = '…'
+
+    let err
+    if (authMode === 'signup') {
+      const r = await sb.auth.signUp({ email, password: pw, options: { data: { name } } })
+      err = r.error
+      if (!err) {
+        errEl.style.color = 'var(--accent2)'
+        errEl.textContent = 'Check your email to confirm your account, then sign in.'
+        btn.disabled = false; btn.textContent = 'Create account'
+        return
+      }
+    } else {
+      const r = await sb.auth.signInWithPassword({ email, password: pw })
+      err = r.error
+      if (!err) { initHostDash(r.data.session); return }
+    }
+    errEl.style.color = 'var(--danger)'
+    errEl.textContent = err.message
+    btn.disabled = false
+    btn.textContent = authMode === 'signup' ? 'Create account' : 'Sign in'
+  }
+
+  // Enter key handled natively by form submit
+}
+
+// ══════════════════════════════════════════════════════════════
+// HOST DASHBOARD
+// ══════════════════════════════════════════════════════════════
+let hostSession = null
+let hostData    = null
+
+const initHostDash = async session => {
+  hostSession = session
+  showView('view-host')
+  document.getElementById('host-email-label').textContent = session.user.email
+  document.getElementById('signout-btn').onclick = async () => {
+    await sb.auth.signOut()
+    location.reload()
+  }
+  const bookingUrl = () => {
+    const u = new URL(location.href)
+    u.search = ''
+    u.searchParams.set('host', session.user.id)
+    if (ENV === 'stage') u.searchParams.set('env', 'stage')
+    return u.toString()
+  }
+  const linkBtn = document.getElementById('share-link-btn')
+  linkBtn.href = bookingUrl()
+  linkBtn.onclick = e => {
+    e.preventDefault()
+    const url = bookingUrl()
+    navigator.clipboard?.writeText(url).catch(() => {})
+    openModal('Booking link', `<p style="font-size:13px;word-break:break-all;color:var(--accent)">${url}</p><p style="margin-top:10px;font-size:12px;color:var(--muted)">Share this URL with guests. Copied to clipboard.</p>`)
+  }
+
+  buildColorPicker()
+  buildTimezoneSelect()
+  await Promise.all([loadHost(), loadTypes(), loadAvailability(), loadUpcoming()])
+}
+
+// ── profile ──────────────────────────────────────────────────
+let avatarSource = 'initials'
+
+// MD5 for Gravatar (no SubtleCrypto support for MD5, use this tiny impl)
+const md5 = s => {
+  const RL = (n, c) => (n << c) | (n >>> (32-c))
+  const A = s => s.split('').map(c => c.charCodeAt(0))
+  let [a,b,c,d] = [0x67452301,0xefcdab89,0x98badcfe,0x10325476]
+  const T = Array.from({length:64},(_,i) => Math.floor(Math.abs(Math.sin(i+1))*2**32)>>>0)
+  const bs = A(s); bs.push(0x80)
+  while (bs.length % 64 !== 56) bs.push(0)
+  const l = s.length*8; bs.push(l&0xff,(l>>8)&0xff,(l>>16)&0xff,(l>>24)&0xff,0,0,0,0)
+  for (let i=0;i<bs.length;i+=64) {
+    const M=[]; for(let j=0;j<16;j++) M[j]=(bs[i+j*4])|(bs[i+j*4+1]<<8)|(bs[i+j*4+2]<<16)|(bs[i+j*4+3]<<24)
+    let [A2,B2,C2,D2]=[a,b,c,d]
+    const F=(x,y,z)=>(x&y)|(~x&z), G=(x,y,z)=>(x&z)|(y&~z), H=(x,y,z)=>x^y^z, I=(x,y,z)=>y^(x|~z)
+    const R=(a,b,c,d,f,g,k,s)=>((b+RL((a+f(b,c,d)+M[g]+k)>>>0,s))>>>0)
+    const ss=[[7,12,17,22],[5,9,14,20],[4,11,16,23],[6,10,15,21]]
+    for(let j=0;j<16;j++){const s=ss[0][j%4];[A2,B2,C2,D2]=[D2,R(A2,B2,C2,D2,F,j,T[j],s),B2,C2]}
+    for(let j=0;j<16;j++){const s=ss[1][j%4];[A2,B2,C2,D2]=[D2,R(A2,B2,C2,D2,G,(5*j+1)%16,T[j+16],s),B2,C2]}
+    for(let j=0;j<16;j++){const s=ss[2][j%4];[A2,B2,C2,D2]=[D2,R(A2,B2,C2,D2,H,(3*j+5)%16,T[j+32],s),B2,C2]}
+    for(let j=0;j<16;j++){const s=ss[3][j%4];[A2,B2,C2,D2]=[D2,R(A2,B2,C2,D2,I,7*j%16,T[j+48],s),B2,C2]}
+    a=(a+A2)>>>0; b=(b+B2)>>>0; c=(c+C2)>>>0; d=(d+D2)>>>0
+  }
+  return [a,b,c,d].map(n=>(n>>>0).toString(16).padStart(8,'0').match(/../g).reverse().join('')).join('')
+}
+
+const avatarUrl = (src, name, email) => {
+  if (src === 'gravatar') {
+    const hash = md5((email||'').trim().toLowerCase())
+    return `https://www.gravatar.com/avatar/${hash}?s=112&d=identicon`
+  }
+  // initials via ui-avatars
+  const initials = (name||'?').split(' ').map(w=>w[0]).slice(0,2).join('+')
+  return `https://ui-avatars.com/api/?name=${initials}&size=112&background=0d1020&color=00e5ff&bold=true&format=svg`
+}
+
+const renderAvatar = (src, name, email) => {
+  const img = document.getElementById('pf-avatar')
+  if (!img) return
+  img.src = avatarUrl(src, name, email)
+  document.querySelectorAll('.avatar-opt').forEach(b =>
+    b.classList.toggle('active', b.dataset.src === src))
+}
+
+const loadHost = async () => {
+  const { data } = await db('hosts').select('*').eq('id', hostSession.user.id).single()
+  hostData = data
+  if (!data) return
+  document.getElementById('pf-name').value = data.name || ''
+  document.getElementById('pf-bio').value  = data.bio  || ''
+  const tzSel = document.getElementById('pf-tz')
+  if (tzSel.querySelector(`option[value="${data.timezone}"]`))
+    tzSel.value = data.timezone
+  avatarSource = data.avatar_source || 'initials'
+  renderAvatar(avatarSource, data.name, hostSession.user.email)
+}
+
+// avatar option buttons
+document.querySelectorAll('.avatar-opt').forEach(b => b.onclick = () => {
+  avatarSource = b.dataset.src
+  const name  = document.getElementById('pf-name').value.trim()
+  renderAvatar(avatarSource, name, hostSession.user.email)
+})
+
+// live-update avatar when name changes
+document.getElementById('pf-name').addEventListener('input', e => {
+  if (avatarSource === 'initials')
+    renderAvatar('initials', e.target.value, hostSession.user.email)
+})
+
+document.getElementById('pf-save').onclick = async () => {
+  const errEl = document.getElementById('pf-err')
+  errEl.textContent = ''
+  const { error } = await db('hosts').update({
+    name:          document.getElementById('pf-name').value.trim(),
+    bio:           document.getElementById('pf-bio').value.trim(),
+    timezone:      document.getElementById('pf-tz').value,
+    avatar_source: avatarSource
+  }).eq('id', hostSession.user.id)
+  if (error) { errEl.textContent = error.message; return }
+  errEl.style.color = 'var(--accent2)'; errEl.textContent = 'Saved.'
+  setTimeout(() => errEl.textContent = '', 2000)
+  await loadHost()
+}
+
+const buildTimezoneSelect = () => {
+  const zones = Intl.supportedValuesOf?.('timeZone') || [
+    'UTC','Europe/Berlin','Europe/London','America/New_York',
+    'America/Chicago','America/Denver','America/Los_Angeles',
+    'Asia/Tokyo','Asia/Singapore','Australia/Sydney'
+  ]
+  const sel = document.getElementById('pf-tz')
+  sel.innerHTML = zones.map(z => `<option value="${z}">${z}</option>`).join('')
+  sel.value = Intl.DateTimeFormat().resolvedOptions().timeZone
+}
+
+// ── color picker ─────────────────────────────────────────────
+const buildColorPicker = () => {
+  const el = document.getElementById('color-picker')
+  el.innerHTML = COLORS.map(c =>
+    `<div class="color-swatch" data-c="${c}" style="width:22px;height:22px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c === selectedColor ? '#fff' : 'transparent'};transition:border .12s"></div>`
+  ).join('')
+  el.querySelectorAll('.color-swatch').forEach(s => s.onclick = () => {
+    selectedColor = s.dataset.c
+    el.querySelectorAll('.color-swatch').forEach(x => x.style.borderColor = x.dataset.c === selectedColor ? '#fff' : 'transparent')
+  })
+}
+
+// ── meeting types ─────────────────────────────────────────────
+const loadTypes = async () => {
+  const { data: types } = await db('types').select('*')
+    .eq('host_id', hostSession.user.id).order('created_at')
+  const el = document.getElementById('types-list')
+  if (!types?.length) { el.innerHTML = '<span class="empty-note">No meeting types yet.</span>'; return }
+  el.innerHTML = types.map(t => `
+    <div class="mtype-card">
+      <div class="mtype-dot" style="background:${t.color}"></div>
+      <div class="mtype-info">
+        <div class="mtype-name">${esc(t.name)}</div>
+        <div class="mtype-dur">${t.duration_min} min${t.post_meeting_min ? ' + ' + t.post_meeting_min + 'm post' : ''} · step ${t.step_min}m${t.description ? ' · ' + esc(t.description) : ''}</div>
+      </div>
+      <div class="mtype-actions">
+        <button class="btn btn-ghost btn-sm" data-del="${t.id}">✕</button>
+      </div>
+    </div>`).join('')
+  el.querySelectorAll('[data-del]').forEach(b =>
+    b.onclick = () => deleteType(b.dataset.del))
+}
+
+document.getElementById('add-type-btn').onclick = () => {
+  document.getElementById('type-form').style.display = ''
+  document.getElementById('tf-name').focus()
+}
+document.getElementById('tf-cancel').onclick = () => document.getElementById('type-form').style.display = 'none'
+
+document.getElementById('tf-save').onclick = async () => {
+  const errEl   = document.getElementById('tf-err')
+  const name    = document.getElementById('tf-name').value.trim()
+  const dur     = parseInt(document.getElementById('tf-dur').value)
+  const post    = parseInt(document.getElementById('tf-post').value) || 0
+  const stepRaw = document.getElementById('tf-step').value.trim()
+  const step    = stepRaw ? parseInt(stepRaw) : (dur < 60 ? 10 : 30)
+  const desc    = document.getElementById('tf-desc').value.trim()
+  if (!name || !dur) { errEl.textContent = 'Name and duration required.'; return }
+  const { error } = await db('types').insert({
+    host_id: hostSession.user.id, name, duration_min: dur,
+    post_meeting_min: post, step_min: step,
+    description: desc || null, color: selectedColor
+  })
+  if (error) { errEl.textContent = error.message; return }
+  document.getElementById('type-form').style.display = 'none'
+  document.getElementById('tf-name').value = ''
+  document.getElementById('tf-desc').value = ''
+  document.getElementById('tf-post').value = '0'
+  document.getElementById('tf-step').value = ''
+  await loadTypes()
+}
+
+const deleteType = async id => {
+  if (!confirm('Delete this meeting type?')) return
+  await db('types').delete().eq('id', id)
+  await loadTypes()
+}
+
+// ── availability ──────────────────────────────────────────────
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+
+const loadAvailability = async () => {
+  const { data: rows } = await db('avail').select('*')
+    .eq('host_id', hostSession.user.id).order('day').order('start_time')
+  const el = document.getElementById('avail-list')
+  if (!rows?.length) { el.innerHTML = '<span class="empty-note">No availability set.</span>'; return }
+  el.innerHTML = rows.map(r => `
+    <div class="avail-row">
+      <span class="avail-day">${DAY_NAMES[r.day]}</span>
+      <span class="avail-time">${r.start_time.slice(0,5)} – ${r.end_time.slice(0,5)}</span>
+      <button class="btn btn-ghost btn-sm" data-del="${r.id}">✕</button>
+    </div>`).join('')
+  el.querySelectorAll('[data-del]').forEach(b =>
+    b.onclick = async () => {
+      await db('avail').delete().eq('id', b.dataset.del)
+      loadAvailability()
+    })
+}
+
+document.getElementById('add-avail-btn').onclick = () => {
+  document.getElementById('avail-form').style.display = ''
+  document.getElementById('af-day').focus()
+}
+document.getElementById('af-cancel').onclick = () => document.getElementById('avail-form').style.display = 'none'
+
+document.getElementById('af-save').onclick = async () => {
+  const errEl = document.getElementById('af-err')
+  const day   = parseInt(document.getElementById('af-day').value)
+  const from  = document.getElementById('af-from').value
+  const to    = document.getElementById('af-to').value
+  if (!from || !to || from >= to) { errEl.textContent = 'Invalid time range.'; return }
+  const { error } = await db('avail').insert({
+    host_id: hostSession.user.id, day, start_time: from, end_time: to
+  })
+  if (error) { errEl.textContent = error.message; return }
+  document.getElementById('avail-form').style.display = 'none'
+  await loadAvailability()
+}
+
+// ── upcoming bookings ─────────────────────────────────────────
+const loadUpcoming = async () => {
+  const { data: rows } = await db('bookings')
+    .select(`*, ${TABLES.types}(name,color)`)
+    .eq('host_id', hostSession.user.id)
+    .eq('status', 'confirmed')
+    .gte('starts_at', new Date().toISOString())
+    .order('starts_at').limit(10)
+  const el = document.getElementById('bookings-list')
+  if (!rows?.length) { el.innerHTML = '<span class="empty-note">No upcoming bookings.</span>'; return }
+  el.innerHTML = rows.map(r => {
+    const s = new Date(r.starts_at), e = new Date(r.ends_at)
+    const day = s.toLocaleDateString([], { weekday:'short', month:'short', day:'numeric' })
+    const t   = `${hhmm(s)} – ${hhmm(e)}`
+    return `<div class="booking-row">
+      <div class="btime">${day} · ${t}</div>
+      <div class="bguest">${esc(r.guest_name)}</div>
+      <div class="bmeta">${esc(r.guest_email)} · <span style="color:${r[TABLES.types]?.color}">${esc(r[TABLES.types]?.name||'')}</span></div>
+      ${r.guest_notes ? `<div class="bmeta" style="margin-top:4px;font-style:italic">${esc(r.guest_notes)}</div>` : ''}
+    </div>`
+  }).join('')
+}
+
+// ══════════════════════════════════════════════════════════════
+// BOOKING / GUEST VIEW
+// ══════════════════════════════════════════════════════════════
+let bk = {
+  hostId: null, host: null,
+  types: [], avail: [],
+  selectedType: null,
+  year: 0, month: 0,
+  selectedDay: null,
+  selectedSlot: null,
+  bookedRanges: []
+}
+
+const initBookingView = async hostId => {
+  bk.hostId = hostId
+  showView('view-book')
+
+  const [{ data: host }, { data: types }, { data: avail }] = await Promise.all([
+    db('hosts').select('*').eq('id', hostId).single(),
+    db('types').select('*').eq('host_id', hostId).eq('active', true).order('duration_min'),
+    db('avail').select('*').eq('host_id', hostId).order('day')
+  ])
+
+  bk.host  = host
+  bk.types = types || []
+  bk.avail = avail || []
+
+  document.getElementById('bk-host-name').textContent = host ? `Book with ${host.name}` : 'Book a meeting'
+  document.getElementById('bk-host-bio').textContent  = host?.bio || ''
+
+  renderTypesPicker()
+}
+
+// ── step 1: type picker ───────────────────────────────────────
+const renderTypesPicker = () => {
+  const el = document.getElementById('bk-types')
+  if (!bk.types.length) { el.innerHTML = '<span class="empty-note">No meeting types available.</span>'; return }
+  el.innerHTML = bk.types.map(t => `
+    <div class="mtype-pill" data-id="${t.id}">
+      <div class="pill-name">${esc(t.name)}</div>
+      <div class="pill-dur">${t.duration_min} min${t.description ? ' · ' + esc(t.description) : ''}</div>
+      <div class="pill-bar" style="background:${t.color}"></div>
+    </div>`).join('')
+  el.querySelectorAll('.mtype-pill').forEach(p =>
+    p.onclick = () => selectType(p.dataset.id))
+}
+
+const selectType = id => {
+  bk.selectedType  = bk.types.find(t => t.id === id)
+  bk.selectedDay   = null
+  bk.selectedSlot  = null
+  document.querySelectorAll('.mtype-pill').forEach(p => p.classList.toggle('selected', p.dataset.id === id))
+  const now = new Date()
+  bk.year  = now.getFullYear()
+  bk.month = now.getMonth()
+  document.getElementById('bk-step-cal').style.display  = ''
+  document.getElementById('bk-step-slots').style.display = 'none'
+  document.getElementById('bk-step-form').style.display  = 'none'
+  renderCalendar()
+  document.getElementById('bk-step-cal').scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+// ── step 2: calendar ──────────────────────────────────────────
+const MONTHS = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December']
+const DOW    = ['Su','Mo','Tu','We','Th','Fr','Sa']
+
+const renderCalendar = () => {
+  const { year, month, avail } = bk
+  document.getElementById('cal-month-label').textContent = `${MONTHS[month]} ${year}`
+  const firstDow   = new Date(year, month, 1).getDay()
+  const daysInMonth= new Date(year, month + 1, 0).getDate()
+  const today      = new Date(); today.setHours(0,0,0,0)
+  const activeDays = new Set(avail.map(a => a.day))
+
+  const grid = document.getElementById('cal-grid')
+  grid.innerHTML =
+    DOW.map(d => `<div class="cal-dow">${d}</div>`).join('') +
+    [...Array(firstDow)].map(() => `<div class="cal-cell empty"></div>`).join('') +
+    [...Array(daysInMonth)].map((_,i) => {
+      const d    = i + 1
+      const date = new Date(year, month, d)
+      const past = date < today
+      const avl  = activeDays.has(date.getDay())
+      const sel  = bk.selectedDay === d && !past
+      const cls  = [
+        'cal-cell',
+        past ? 'past' : '',
+        sel  ? 'selected' : '',
+        !past && avl && !sel ? 'has-slots' : '',
+        date.toDateString() === today.toDateString() && !sel ? 'today' : ''
+      ].filter(Boolean).join(' ')
+      return `<div class="${cls}" data-d="${d}">${d}</div>`
+    }).join('')
+
+  grid.querySelectorAll('.cal-cell:not(.empty):not(.past)').forEach(c =>
+    c.onclick = () => selectDay(parseInt(c.dataset.d)))
+
+  document.getElementById('cal-prev').onclick = () => {
+    if (bk.month === 0) { bk.month = 11; bk.year-- } else bk.month--
+    renderCalendar()
+  }
+  document.getElementById('cal-next').onclick = () => {
+    if (bk.month === 11) { bk.month = 0; bk.year++ } else bk.month++
+    renderCalendar()
+  }
+}
+
+// ── step 2b: slots ────────────────────────────────────────────
+const selectDay = async d => {
+  bk.selectedDay  = d
+  bk.selectedSlot = null
+  renderCalendar()
+  document.getElementById('bk-step-slots').style.display = ''
+  document.getElementById('bk-step-form').style.display  = 'none'
+  document.getElementById('slots-header').textContent    = 'LOADING SLOTS…'
+  document.getElementById('slots-grid').innerHTML        = '<span class="spinner"></span>'
+
+  const date  = new Date(bk.year, bk.month, d)
+  const from  = new Date(bk.year, bk.month, d,  0,  0, 0)
+  const to    = new Date(bk.year, bk.month, d, 23, 59, 59)
+
+  const { data: booked } = await sb.rpc(TABLES.rpc, {
+    p_host_id: bk.hostId,
+    p_from:    from.toISOString(),
+    p_to:      to.toISOString()
+  })
+  bk.bookedRanges = (booked || []).map(r => [new Date(r.starts_at), new Date(r.ends_at)])
+
+  const slots = generateSlots(date, bk.selectedType, bk.avail, bk.bookedRanges)
+  const label = date.toLocaleDateString([], { weekday:'long', month:'long', day:'numeric' })
+  document.getElementById('slots-header').textContent =
+    `AVAILABLE TIMES · ${label.toUpperCase()}`
+
+  const grid = document.getElementById('slots-grid')
+  if (!slots.length) { grid.innerHTML = '<span class="empty-note">No available times on this day.</span>'; return }
+
+  grid.innerHTML = slots.map((s,i) =>
+    `<button class="slot-btn${s.taken?' taken':''}" data-iso="${s.start.toISOString()}" data-end="${s.end.toISOString()}"
+       style="animation-delay:${i*18}ms" ${s.taken?'disabled':''}>${hhmm(s.start)}</button>`
+  ).join('')
+
+  grid.querySelectorAll('.slot-btn:not(.taken)').forEach(b =>
+    b.onclick = () => selectSlot(b.dataset.iso, b.dataset.end))
+
+  document.getElementById('bk-step-slots').scrollIntoView({ behavior:'smooth', block:'nearest' })
+}
+
+const generateSlots = (date, type, avail, booked) => {
+  const durMin  = type.duration_min
+  const postMin = type.post_meeting_min || 0
+  // step_min: how far apart slot starts are; default 10 for <60, 30 for longer
+  const stepMin = type.step_min || (durMin < 60 ? 10 : 30)
+  const dow  = date.getDay()
+  const segs = avail.filter(a => a.day === dow)
+  if (!segs.length) return []
+  const now  = new Date()
+  const slots = []
+  segs.forEach(seg => {
+    const [fh, fm] = seg.start_time.split(':').map(Number)
+    const [th, tm] = seg.end_time.split(':').map(Number)
+    let cur = new Date(date); cur.setHours(fh, fm, 0, 0)
+    const winEnd = new Date(date); winEnd.setHours(th, tm, 0, 0)
+    while (true) {
+      const slotEnd     = new Date(cur.getTime() + durMin  * 60000)
+      const blockedEnd  = new Date(cur.getTime() + (durMin + postMin) * 60000)
+      // slot must finish (including post-meeting) within the window
+      if (blockedEnd > winEnd) break
+      const taken = cur <= now || booked.some(([bs, be]) => cur < be && slotEnd > bs)
+      slots.push({ start: new Date(cur), end: slotEnd, taken })
+      cur = new Date(cur.getTime() + stepMin * 60000)
+    }
+  })
+  return slots
+}
+
+// ── step 3: details form ──────────────────────────────────────
+const selectSlot = (isoStart, isoEnd) => {
+  bk.selectedSlot = { start: new Date(isoStart), end: new Date(isoEnd) }
+  document.querySelectorAll('.slot-btn').forEach(b =>
+    b.classList.toggle('picked', b.dataset.iso === isoStart))
+  const label = `${bk.selectedType.name} · ${hhmm(bk.selectedSlot.start)} – ${hhmm(bk.selectedSlot.end)} · ${bk.selectedSlot.start.toLocaleDateString([], { weekday:'long', month:'long', day:'numeric' })}`
+  document.getElementById('bk-summary').textContent = label
+  document.getElementById('bk-step-form').style.display = ''
+  document.getElementById('bk-step-form').scrollIntoView({ behavior:'smooth', block:'start' })
+}
+
+// ── step 4: submit ────────────────────────────────────────────
+document.getElementById('gf-submit').onclick = async () => {
+  const errEl = document.getElementById('gf-err')
+  const name  = document.getElementById('gf-name').value.trim()
+  const email = document.getElementById('gf-email').value.trim()
+  const notes = document.getElementById('gf-notes').value.trim()
+  errEl.textContent = ''
+  if (!name || !email) { errEl.textContent = 'Name and email are required.'; return }
+  if (!email.includes('@')) { errEl.textContent = 'Enter a valid email.'; return }
+
+  const btn = document.getElementById('gf-submit')
+  btn.disabled = true; btn.textContent = 'Booking…'
+
+  const { data, error } = await db('bookings').insert({
+    host_id:         bk.hostId,
+    meeting_type_id: bk.selectedType.id,
+    guest_name:      name,
+    guest_email:     email,
+    guest_notes:     notes || null,
+    starts_at:       bk.selectedSlot.start.toISOString(),
+    ends_at:         bk.selectedSlot.end.toISOString()
+  }).select().single()
+
+  if (error) {
+    errEl.textContent = error.code === '23P01'
+      ? 'That slot was just taken — please pick another time.'
+      : error.message
+    btn.disabled = false; btn.textContent = 'Confirm booking'
+    return
+  }
+
+  document.getElementById('bk-step-type').style.display  = 'none'
+  document.getElementById('bk-step-cal').style.display   = 'none'
+  document.getElementById('bk-step-form').style.display  = 'none'
+  document.getElementById('bk-step-done').style.display  = ''
+
+  const s = new Date(data.starts_at), e = new Date(data.ends_at)
+  document.getElementById('confirm-body').innerHTML =
+    `<strong>${esc(bk.selectedType.name)}</strong><br/>
+     ${s.toLocaleDateString([], { weekday:'long', year:'numeric', month:'long', day:'numeric' })}<br/>
+     ${hhmm(s)} – ${hhmm(e)}<br/><br/>
+     A confirmation has been sent to <strong>${esc(email)}</strong>.`
+  document.getElementById('confirm-id').textContent = `Booking ID: ${data.id}`
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════════════════════
+const openModal = (title, body) => {
+  document.getElementById('modal-title').textContent = title
+  document.getElementById('modal-body').innerHTML    = body
+  document.getElementById('modal-bg').style.display  = 'grid'
+}
+document.getElementById('modal-cancel').onclick = () =>
+  document.getElementById('modal-bg').style.display = 'none'
+document.getElementById('modal-bg').onclick = e => {
+  if (e.target === document.getElementById('modal-bg'))
+    document.getElementById('modal-bg').style.display = 'none'
+}
+
+// ══════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════
+const hhmm = d => d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', hour12: false })
+const esc  = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+
+// ══════════════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════════════
+if (ENV === 'stage') document.getElementById('stage-ribbon').style.display = 'block'
+
+// ── theme switch ─────────────────────────────────────────────
+const THEMES  = ['dark', 'light', 'hotrod']
+const THEME_ICONS = { dark: '☀', light: '☾', hotrod: '🔥' }
+const applyTheme = t => {
+  document.documentElement.classList.remove(...THEMES)
+  if (t !== 'dark') document.documentElement.classList.add(t)
+  document.documentElement.style.colorScheme = t === 'light' ? 'light' : 'dark'
+  document.getElementById('theme-switch').textContent = THEME_ICONS[t]
+  document.getElementById('theme-switch').title = `Theme: ${t} (click to cycle)`
+}
+const savedTheme = localStorage.getItem('appt_theme') || 'dark'
+applyTheme(savedTheme)
+
+document.getElementById('theme-switch').onclick = () => {
+  const cur  = THEMES.find(t => document.documentElement.classList.contains(t)) || 'dark'
+  const next = THEMES[(THEMES.indexOf(cur) + 1) % THEMES.length]
+  localStorage.setItem('appt_theme', next)
+  applyTheme(next)
+}
+
+route()
+
+</script>
+</body>
+</html>

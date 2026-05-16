@@ -1,0 +1,31 @@
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inject secrets into index.html
+        run: |
+          sed -i \
+            "s|__SUPABASE_URL__|${{ secrets.SUPABASE_URL }}|g" \
+            index.html
+          sed -i \
+            "s|__SUPABASE_ANON__|${{ secrets.SUPABASE_ANON }}|g" \
+            index.html
+
+      - name: Deploy to EdgeOne Pages
+        env:
+          EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}
+        run: |
+          npm install -g edgeone
+          edgeone pages deploy . \
+            --project apponi \
+            --token "$EDGEONE_TOKEN" \
+            --region global
