@@ -1016,6 +1016,127 @@ html.hotrod #theme-switch:hover {
   box-shadow: 0 0 24px rgba(204,34,0,.8);
 }
 
+
+/* ─── AVAILABILITY GRID ──────────────────────────────────────── */
+.avail-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border2);
+  margin-bottom: 14px;
+}
+.avail-tab {
+  padding: 6px 14px;
+  font-family: var(--fhead);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all .12s;
+}
+.avail-tab:hover { color: var(--ink) }
+.avail-tab.active { color: var(--accent); border-bottom-color: var(--accent) }
+
+.avail-grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch }
+
+.avail-grid-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.avail-grid-controls .label { font-size: 10px; color: var(--muted); letter-spacing: .1em; margin-right: 4px }
+.step-btn {
+  padding: 3px 10px;
+  font-family: var(--fmono);
+  font-size: 10px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: var(--r);
+  transition: all .12s;
+}
+.step-btn:hover  { border-color: var(--accent); color: var(--accent) }
+.step-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,255,.08) }
+
+.avail-grid {
+  display: grid;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  min-width: 500px;
+}
+.ag-header-row,
+.ag-day-row {
+  display: contents;
+}
+.ag-corner { background: var(--surface2) }
+.ag-time-label {
+  background: var(--surface2);
+  font-size: 9px;
+  color: var(--muted);
+  text-align: center;
+  padding: 3px 2px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.ag-time-label:last-child { border-right: none }
+.ag-time-label.hour-mark { color: var(--ink); font-weight: 700 }
+.ag-day-label {
+  background: var(--surface2);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: .08em;
+  text-align: center;
+  padding: 6px 4px;
+  border-right: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ag-cell {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background .08s;
+  min-height: 20px;
+}
+.ag-cell:last-child { border-right: none }
+.ag-cell.on  { background: rgba(0,229,255,.22) }
+.ag-cell.on:hover { background: rgba(0,229,255,.32) }
+.ag-cell:not(.on):hover { background: rgba(0,229,255,.07) }
+.ag-cell.hour-divider { border-right-color: var(--border2) }
+.ag-save-row {
+  grid-column: 1 / -1;
+  padding: 10px;
+  display: flex;
+  gap: 8px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  align-items: center;
+}
+.ag-save-row .ag-hint { font-size: 10px; color: var(--muted); flex: 1 }
+
+/* hotrod overrides */
+html.hotrod .avail-tab.active { color: var(--accent); border-bottom-color: var(--accent) }
+html.hotrod .ag-cell.on { background: rgba(204,34,0,.25) }
+html.hotrod .ag-cell.on:hover { background: rgba(204,34,0,.38) }
+html.hotrod .ag-cell:not(.on):hover { background: rgba(204,34,0,.08) }
+html.hotrod .ag-day-label { color: var(--accent) }
+
 /* ─── CORNER RIBBON (staging only) ──────────────────────────── */
 #stage-ribbon {
   display: none;
@@ -1131,32 +1252,56 @@ html.hotrod #theme-switch:hover {
       </div>
 
       <!-- Availability -->
-      <div class="panel">
+      <div class="panel" style="grid-column: 1 / -1">
         <div class="panel-head">
           <h2>Weekly availability</h2>
-          <button class="btn btn-sm" id="add-avail-btn">+ Add</button>
         </div>
         <div class="panel-body">
-          <div id="avail-list"><span class="spinner"></span></div>
-          <div class="inline-form" id="avail-form" style="display:none">
-            <div class="field">
-              <label>DAY</label>
-              <select id="af-day">
-                <option value="0">Sunday</option><option value="1">Monday</option>
-                <option value="2">Tuesday</option><option value="3">Wednesday</option>
-                <option value="4">Thursday</option><option value="5">Friday</option>
-                <option value="6">Saturday</option>
-              </select>
+          <div class="avail-tabs">
+            <button class="avail-tab active" data-tab="grid">Grid</button>
+            <button class="avail-tab" data-tab="form">Form</button>
+          </div>
+
+          <!-- GRID TAB -->
+          <div id="avail-tab-grid">
+            <div class="avail-grid-controls">
+              <span class="label">STEP</span>
+              <button class="step-btn" data-step="5">5m</button>
+              <button class="step-btn" data-step="10">10m</button>
+              <button class="step-btn active" data-step="15">15m</button>
+              <button class="step-btn" data-step="30">30m</button>
+              <span style="flex:1"></span>
+              <button class="btn btn-primary btn-sm" id="ag-save">Save grid</button>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              <div class="field"><label>FROM</label><input id="af-from" type="time" value="09:00"/></div>
-              <div class="field"><label>TO</label>  <input id="af-to"   type="time" value="17:00"/></div>
+            <div class="avail-grid-wrap">
+              <div id="avail-grid" class="avail-grid"></div>
             </div>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-primary btn-sm" id="af-save">Save</button>
-              <button class="btn btn-ghost btn-sm"   id="af-cancel">Cancel</button>
+          </div>
+
+          <!-- FORM TAB -->
+          <div id="avail-tab-form" style="display:none">
+            <div id="avail-list"><span class="spinner"></span></div>
+            <div class="inline-form" id="avail-form" style="display:none;margin-top:10px">
+              <div class="field">
+                <label>DAY</label>
+                <select id="af-day">
+                  <option value="0">Sunday</option><option value="1">Monday</option>
+                  <option value="2">Tuesday</option><option value="3">Wednesday</option>
+                  <option value="4">Thursday</option><option value="5">Friday</option>
+                  <option value="6">Saturday</option>
+                </select>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div class="field"><label>FROM</label><input id="af-from" type="time" value="09:00"/></div>
+                <div class="field"><label>TO</label>  <input id="af-to"   type="time" value="17:00"/></div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-primary btn-sm" id="af-save">Save</button>
+                <button class="btn btn-ghost btn-sm"   id="af-cancel">Cancel</button>
+              </div>
+              <div class="err-msg" id="af-err"></div>
             </div>
-            <div class="err-msg" id="af-err"></div>
+            <button class="btn btn-sm" id="add-avail-btn" style="margin-top:10px">+ Add row</button>
           </div>
         </div>
       </div>
@@ -1563,11 +1708,194 @@ const deleteType = async id => {
 }
 
 // ── availability ──────────────────────────────────────────────
-const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+const DAY_NAMES    = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+const DAY_LABELS   = ['Su','Mo','Tu','We','Th','Fr','Sa']
+const TOTAL_MINS   = 24 * 60   // full day grid
+const START_HOUR   = 0
 
+// ── availability tab switcher ─────────────────────────────────
+let availTab = localStorage.getItem('appt_avail_tab') || 'grid'
+const switchAvailTab = t => {
+  availTab = t
+  localStorage.setItem('appt_avail_tab', t)
+  document.querySelectorAll('.avail-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === t))
+  document.getElementById('avail-tab-grid').style.display = t === 'grid' ? '' : 'none'
+  document.getElementById('avail-tab-form').style.display = t === 'form' ? '' : 'none'
+}
+document.querySelectorAll('.avail-tab').forEach(b =>
+  b.onclick = () => switchAvailTab(b.dataset.tab))
+switchAvailTab(availTab)
+
+// ── grid state ────────────────────────────────────────────────
+// gridState[day][slotIndex] = true/false
+let gridState  = Array.from({length:7}, () => ({}))
+let gridStep   = parseInt(localStorage.getItem('appt_avail_step') || '15')
+let dragValue  = null   // true = painting on, false = painting off
+
+const slotsPerDay = () => Math.ceil(TOTAL_MINS / gridStep)
+
+// ── encode/decode grid ↔ availability windows ─────────────────
+const gridToWindows = () => {
+  const wins = []
+  for (let day = 0; day < 7; day++) {
+    const slots = slotsPerDay()
+    let start = null
+    for (let i = 0; i <= slots; i++) {
+      const on = !!gridState[day][i]
+      if (on && start === null) { start = i }
+      if (!on && start !== null) {
+        const fromM = start * gridStep
+        const toM   = i * gridStep
+        wins.push({
+          day,
+          start_time: `${String(Math.floor(fromM/60)).padStart(2,'0')}:${String(fromM%60).padStart(2,'0')}`,
+          end_time:   `${String(Math.floor(toM/60)).padStart(2,'0')}:${String(toM%60).padStart(2,'0')}`
+        })
+        start = null
+      }
+    }
+  }
+  return wins
+}
+
+const windowsToGrid = rows => {
+  gridState = Array.from({length:7}, () => ({}))
+  const slots = slotsPerDay()
+  rows.forEach(r => {
+    const [fh,fm] = r.start_time.split(':').map(Number)
+    const [th,tm] = r.end_time.split(':').map(Number)
+    const fromSlot = Math.round((fh*60+fm) / gridStep)
+    const toSlot   = Math.round((th*60+tm) / gridStep)
+    for (let i = fromSlot; i < toSlot; i++)
+      gridState[r.day][i] = true
+  })
+}
+
+// ── render grid ───────────────────────────────────────────────
+const renderGrid = () => {
+  const slots   = slotsPerDay()
+  const grid    = document.getElementById('avail-grid')
+  const cols    = 1 + slots   // day label col + slot cols
+  grid.style.gridTemplateColumns = `36px repeat(${slots}, minmax(0, 1fr))`
+
+  // header row: corner + time labels
+  let html = `<div class="ag-corner ag-time-label"></div>`
+  for (let i = 0; i < slots; i++) {
+    const m = i * gridStep
+    const h = Math.floor(m / 60), min = m % 60
+    const isHour = min === 0
+    const label  = isHour ? `${String(h).padStart(2,'0')}` : ''
+    html += `<div class="ag-time-label${isHour?' hour-mark':''}">${label}</div>`
+  }
+
+  // day rows
+  for (let day = 0; day < 7; day++) {
+    html += `<div class="ag-day-label">${DAY_LABELS[day]}</div>`
+    for (let i = 0; i < slots; i++) {
+      const m = i * gridStep
+      const isHour = m % 60 === 0 && m > 0
+      const on = !!gridState[day][i]
+      html += `<div class="ag-cell${on?' on':''}${isHour?' hour-divider':''}" data-day="${day}" data-slot="${i}"></div>`
+    }
+  }
+
+  grid.innerHTML = html
+
+  // drag gesture
+  let dragging = false
+  const getCell = e => {
+    const t = e.target.closest('.ag-cell')
+    if (!t) return null
+    return { el: t, day: +t.dataset.day, slot: +t.dataset.slot }
+  }
+  const applyCell = (day, slot, val) => {
+    gridState[day][slot] = val
+    const cell = grid.querySelector(\`[data-day="\${day}"][data-slot="\${slot}"]\`)
+    if (cell) cell.classList.toggle('on', val)
+  }
+
+  grid.addEventListener('mousedown', e => {
+    const c = getCell(e)
+    if (!c) return
+    e.preventDefault()
+    dragging  = true
+    dragValue = !gridState[c.day][c.slot]
+    applyCell(c.day, c.slot, dragValue)
+  })
+  grid.addEventListener('mouseover', e => {
+    if (!dragging) return
+    const c = getCell(e)
+    if (c) applyCell(c.day, c.slot, dragValue)
+  })
+  // touch support
+  grid.addEventListener('touchstart', e => {
+    const touch = e.touches[0]
+    const el = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.ag-cell')
+    if (!el) return
+    dragging  = true
+    const day = +el.dataset.day, slot = +el.dataset.slot
+    dragValue = !gridState[day][slot]
+    applyCell(day, slot, dragValue)
+  }, { passive: true })
+  grid.addEventListener('touchmove', e => {
+    if (!dragging) return
+    const touch = e.touches[0]
+    const el = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.ag-cell')
+    if (el) applyCell(+el.dataset.day, +el.dataset.slot, dragValue)
+  }, { passive: true })
+
+  document.addEventListener('mouseup',  () => { dragging = false }, { once: false })
+  document.addEventListener('touchend', () => { dragging = false }, { once: false })
+}
+
+// ── step button controls ──────────────────────────────────────
+document.querySelectorAll('.step-btn').forEach(b => {
+  if (+b.dataset.step === gridStep) b.classList.add('active')
+  b.onclick = () => {
+    // convert current windows to new step
+    const wins = gridToWindows()
+    gridStep = +b.dataset.step
+    localStorage.setItem('appt_avail_step', gridStep)
+    document.querySelectorAll('.step-btn').forEach(x =>
+      x.classList.toggle('active', +x.dataset.step === gridStep))
+    windowsToGrid(wins.map(w => ({
+      ...w,
+      // normalise to new step by snapping
+      start_time: w.start_time,
+      end_time:   w.end_time
+    })))
+    renderGrid()
+  }
+})
+
+// ── save grid ─────────────────────────────────────────────────
+document.getElementById('ag-save').onclick = async () => {
+  const btn = document.getElementById('ag-save')
+  btn.disabled = true; btn.textContent = 'Saving…'
+  // delete all existing windows then insert new ones
+  const { data: existing } = await db('avail').select('id').eq('host_id', hostSession.user.id)
+  if (existing?.length)
+    await db('avail').delete().eq('host_id', hostSession.user.id)
+  const wins = gridToWindows()
+  if (wins.length) {
+    await db('avail').insert(wins.map(w => ({ ...w, host_id: hostSession.user.id })))
+  }
+  btn.disabled = false; btn.textContent = 'Save grid'
+  // refresh form tab list too
+  await loadAvailability()
+}
+
+// ── load availability (shared by both tabs) ───────────────────
 const loadAvailability = async () => {
   const { data: rows } = await db('avail').select('*')
     .eq('host_id', hostSession.user.id).order('day').order('start_time')
+
+  // update grid
+  windowsToGrid(rows || [])
+  renderGrid()
+
+  // update form list
   const el = document.getElementById('avail-list')
   if (!rows?.length) { el.innerHTML = '<span class="empty-note">No availability set.</span>'; return }
   el.innerHTML = rows.map(r => `
