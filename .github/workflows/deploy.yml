@@ -15,19 +15,24 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
       - name: Inject secrets and deploy stamp
         run: |
           DEPLOY_TIME=$(date -u '+%Y-%m-%d %H:%M UTC')
-          sed -i "s|__SUPABASE_URL__|${{ secrets.SUPABASE_URL }}|g" index.html
-          sed -i "s|__SUPABASE_ANON__|${{ secrets.SUPABASE_ANON }}|g" index.html
-          sed -i "s|__DEPLOY_TIME__|${DEPLOY_TIME}|g" index.html
+          sed -i "s|__SUPABASE_URL__|${{ secrets.SUPABASE_URL }}|g"   dist/index.html
+          sed -i "s|__SUPABASE_ANON__|${{ secrets.SUPABASE_ANON }}|g" dist/index.html
+          sed -i "s|__DEPLOY_TIME__|${DEPLOY_TIME}|g"                  dist/index.html
 
       - name: Deploy to EdgeOne Pages
         env:
           EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}
         run: |
           npm install -g edgeone
-          mkdir -p dist && cp index.html dist/
           edgeone pages deploy dist \
             -n apponi \
             -t "$EDGEONE_TOKEN" \

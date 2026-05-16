@@ -1,0 +1,24 @@
+/* ─── RESET & TOKENS ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+/* ── DARK (default) ── */
+:root {
+  --bg:       #060810;
+  --bg2:      #0a0d18;
+  --surface:  #0d1020;
+  --surface2: #111528;
+  --border:   #1a2040;
+  --border2:  #1e2850;
+  --ink:      #c8d8f0;
+  --muted:    #3d5070;
+  --dim:      #1a2540;
+  --accent:   #00e5ff;
+  --accent2:  #00ff88;
+  --danger:   #ff4060;
+  --warn:     #ffaa00;
+  --r:        2px;
+  --fhead:    'Orbitron', sans-serif;
+  --fmono:    'Space Mono', monospace;
+  --glow:     0 0 12px rgba(0,229,255,.35);
+  --glow2:    0 0 12px rgba(0,255,136,.35);
+}
+/* ── LIGHT (sunlight override) ── */

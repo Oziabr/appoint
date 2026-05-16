@@ -1,0 +1,58 @@
+<div id="view-book" class="view">
+  <div class="book-shell">
+    <div class="book-header">
+      <h1 id="bk-host-name">Book a meeting</h1>
+      <p id="bk-host-bio"></p>
+    </div>
+
+    <!-- Step 1: meeting type -->
+    <div id="bk-step-type">
+      <div class="slots-header">SELECT A MEETING TYPE</div>
+      <div class="mtype-grid" id="bk-types"></div>
+    </div>
+
+    <!-- Step 2: calendar + slots -->
+    <div id="bk-step-cal" style="display:none">
+      <hr/>
+      <div class="cal-wrap">
+        <div class="cal-nav">
+          <span class="month-label" id="cal-month-label"></span>
+          <button class="btn btn-ghost btn-sm" id="cal-prev">←</button>
+          <button class="btn btn-ghost btn-sm" id="cal-next">→</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+
+      <div id="bk-step-slots" style="display:none">
+        <div class="slots-header" id="slots-header"></div>
+        <div class="slots-grid" id="slots-grid"></div>
+      </div>
+    </div>
+
+    <!-- Step 3: guest details form -->
+    <div id="bk-step-form" style="display:none">
+      <hr/>
+      <div class="guest-form">
+        <h2>Your details</h2>
+        <div class="summary" id="bk-summary"></div>
+        <div class="field"><label>YOUR NAME *</label><input id="gf-name" type="text" autocomplete="name"/></div>
+        <div class="field"><label>EMAIL *</label><input id="gf-email" type="email" autocomplete="email"/></div>
+        <div class="field"><label>NOTES (optional)</label><textarea id="gf-notes" placeholder="Anything I should know…"></textarea></div>
+        <button class="btn btn-primary" id="gf-submit" style="width:100%">Confirm booking</button>
+        <div class="err-msg" id="gf-err"></div>
+      </div>
+    </div>
+
+    <!-- Step 4: confirmation -->
+    <div id="bk-step-done" style="display:none">
+      <div class="confirm-box">
+        <div class="checkmark">✦</div>
+        <h2>You're booked</h2>
+        <p id="confirm-body"></p>
+        <div class="confirm-id" id="confirm-id"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL (generic) ───────────────────────────────────────── -->
