@@ -1811,7 +1811,7 @@ const renderGrid = () => {
   }
   const applyCell = (day, slot, val) => {
     gridState[day][slot] = val
-    const cell = grid.querySelector(\`[data-day="\${day}"][data-slot="\${slot}"]\`)
+    const cell = grid.querySelector(`[data-day="${day}"][data-slot="${slot}"]`)
     if (cell) cell.classList.toggle('on', val)
   }
 
