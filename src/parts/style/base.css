@@ -22,3 +22,26 @@
   --glow2:    0 0 12px rgba(0,255,136,.35);
 }
 /* ── LIGHT (sunlight override) ── */
+
+/* ─── BOOKING ROW ACTIONS ────────────────────────────────────── */
+.booking-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap }
+
+/* ─── CALL JOIN LINK (guest confirm screen) ──────────────────── */
+.call-join-wrap {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+}
+.call-join-label {
+  font-size: 10px;
+  letter-spacing: .1em;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-family: var(--fhead);
+}
+.call-join-link {
+  font-size: 11px;
+  word-break: break-all;
+  color: var(--accent);
+}

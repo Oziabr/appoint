@@ -18,6 +18,8 @@ const initHostDash = async session => {
     if (ENV === 'stage') u.searchParams.set('env', 'stage')
     return u.toString()
   }
+  document.getElementById('diag-link-btn').href = appUrl({ diag: '1' })
+
   const linkBtn = document.getElementById('share-link-btn')
   linkBtn.href = bookingUrl()
   linkBtn.onclick = e => {
@@ -507,13 +509,27 @@ const loadUpcoming = async () => {
     const s = new Date(r.starts_at), e = new Date(r.ends_at)
     const day = s.toLocaleDateString([], { weekday:'short', month:'short', day:'numeric' })
     const t   = `${hhmm(s)} – ${hhmm(e)}`
+    const guestCallUrl = appUrl({ call: r.id, role: 'guest' })
     return `<div class="booking-row">
       <div class="btime">${day} · ${t}</div>
       <div class="bguest">${esc(r.guest_name)}</div>
       <div class="bmeta">${esc(r.guest_email)} · <span style="color:${r[TABLES.types]?.color}">${esc(r[TABLES.types]?.name||'')}</span></div>
       ${r.guest_notes ? `<div class="bmeta" style="margin-top:4px;font-style:italic">${esc(r.guest_notes)}</div>` : ''}
+      <div class="booking-actions">
+        <button class="btn btn-sm btn-primary call-start-btn" data-id="${r.id}">📹 Start call</button>
+        <button class="btn btn-sm btn-ghost call-copy-btn" data-url="${esc(guestCallUrl)}" title="Copy guest call link">🔗 Guest link</button>
+      </div>
     </div>`
   }).join('')
+  el.querySelectorAll('.call-start-btn').forEach(b =>
+    b.onclick = () => { location.href = appUrl({ call: b.dataset.id, role: 'host' }) })
+  el.querySelectorAll('.call-copy-btn').forEach(b =>
+    b.onclick = () => {
+      navigator.clipboard?.writeText(b.dataset.url).catch(() => {})
+      openModal('Guest call link',
+        `<p style="font-size:12px;word-break:break-all;color:var(--accent)">${b.dataset.url}</p>
+         <p style="margin-top:10px;font-size:11px;color:var(--muted)">Share this with your guest. Copied to clipboard.</p>`)
+    })
 }
 
 // ══════════════════════════════════════════════════════════════

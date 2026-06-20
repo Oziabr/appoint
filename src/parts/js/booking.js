@@ -227,6 +227,16 @@ document.getElementById('gf-submit').onclick = async () => {
      ${hhmm(s)} – ${hhmm(e)}<br/><br/>
      A confirmation has been sent to <strong>${esc(email)}</strong>.`
   document.getElementById('confirm-id').textContent = `Booking ID: ${data.id}`
+
+  // show guest call link
+  const joinUrl  = appUrl({ call: data.id, role: 'guest' })
+  const joinWrap = document.getElementById('call-join-wrap')
+  const joinLink = document.getElementById('call-join-link')
+  if (joinWrap && joinLink) {
+    joinLink.href        = joinUrl
+    joinLink.textContent = joinUrl
+    joinWrap.style.display = ''
+  }
 }
 
 // ══════════════════════════════════════════════════════════════

@@ -1,0 +1,159 @@
+/* ─── DIAGNOSTICS ────────────────────────────────────────────── */
+#view-diag { min-height: 100vh; padding-bottom: 60px }
+.diag-shell { max-width: 820px; margin: 0 auto; padding: 0 20px }
+.diag-header { padding: 36px 0 24px; border-bottom: 1px solid var(--border2); margin-bottom: 28px; position: relative }
+.diag-header::after { content:''; position:absolute; bottom:-1px; left:0; width:60px; height:2px; background:var(--accent); box-shadow:var(--glow) }
+.diag-header h1 { font-size: clamp(18px,3vw,26px) }
+.diag-sub { color: var(--muted); font-size: 12px; margin-top: 6px }
+
+.diag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.diag-card {
+  padding: 18px 16px 14px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  position: relative;
+  transition: border-color .2s;
+}
+.diag-card::before, .diag-card::after {
+  content: '';
+  position: absolute;
+  width: 8px; height: 8px;
+  border-color: var(--muted);
+  border-style: solid;
+}
+.diag-card::before { top:-1px; left:-1px; border-width:1px 0 0 1px }
+.diag-card::after  { bottom:-1px; right:-1px; border-width:0 1px 1px 0 }
+.diag-card.pass { border-color: var(--accent2) }
+.diag-card.pass::before, .diag-card.pass::after { border-color: var(--accent2) }
+.diag-card.fail { border-color: var(--danger) }
+.diag-card.fail::before, .diag-card.fail::after { border-color: var(--danger) }
+.diag-card.warn { border-color: var(--warn) }
+.diag-card.warn::before, .diag-card.warn::after { border-color: var(--warn) }
+.diag-card.running { border-color: var(--accent) }
+.diag-card.running::before, .diag-card.running::after { border-color: var(--accent) }
+
+.dtest-icon   { font-size: 22px; margin-bottom: 8px }
+.dtest-label  { font-size: 9px; letter-spacing: .16em; color: var(--muted); margin-bottom: 8px; font-family: var(--fhead) }
+.dtest-status {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: 6px;
+}
+.dtest-status.pending { color: var(--muted) }
+.dtest-status.running { color: var(--accent); animation: pulse 1s infinite }
+.dtest-status.pass    { color: var(--accent2) }
+.dtest-status.fail    { color: var(--danger) }
+.dtest-status.warn    { color: var(--warn) }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.dtest-detail { font-size: 10px; color: var(--muted); line-height: 1.5 }
+
+/* verdict */
+.diag-verdict {
+  padding: 16px 20px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  font-size: 13px;
+  margin-bottom: 20px;
+  display: none;
+}
+.diag-verdict.show { display: block }
+.diag-verdict.good { border-color: var(--accent2); color: var(--accent2) }
+.diag-verdict.bad  { border-color: var(--danger);  color: var(--danger) }
+.diag-verdict.warn { border-color: var(--warn);    color: var(--warn) }
+
+.diag-actions { display: flex; gap: 10px }
+
+/* ─── CALL VIEW ───────────────────────────────────────────────── */
+#view-call {
+  height: 100vh;
+  display: none;
+  flex-direction: column;
+  background: #000;
+}
+#view-call.active { display: flex }
+
+.call-shell { flex: 1; display: flex; flex-direction: column; position: relative }
+
+.call-videos {
+  flex: 1;
+  position: relative;
+  background: #080808;
+  overflow: hidden;
+}
+#call-remote {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  background: #111;
+}
+.call-local-wrap {
+  position: absolute;
+  bottom: 12px; right: 12px;
+  width: 120px; height: 90px;
+  border: 1px solid rgba(0,229,255,.3);
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 0 16px rgba(0,0,0,.6), var(--glow);
+}
+#call-local { width: 100%; height: 100%; object-fit: cover }
+
+.call-bar {
+  background: var(--surface);
+  border-top: 1px solid var(--border2);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.call-info { display: flex; align-items: center; gap: 10px; flex: 1 }
+.call-label {
+  font-size: 9px;
+  letter-spacing: .16em;
+  color: var(--accent2);
+  font-family: var(--fhead);
+}
+.call-timer { font-size: 14px; color: var(--ink); letter-spacing: .1em }
+
+.call-controls { display: flex; gap: 8px }
+.call-btn {
+  width: 40px; height: 40px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--ink);
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  transition: all .15s;
+}
+.call-btn:hover { border-color: var(--accent); box-shadow: var(--glow) }
+.call-btn.muted { border-color: var(--danger); color: var(--danger) }
+.call-btn-end  { border-color: var(--danger); color: var(--danger) }
+.call-btn-end:hover { background: var(--danger); color: #fff }
+
+.call-stats { font-size: 10px; color: var(--muted); letter-spacing: .04em; flex: 1; text-align: right }
+.call-status {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: .08em;
+  pointer-events: none;
+  text-align: center;
+}
+.call-status.hidden { display: none }
+
+/* hotrod overrides */
+html.hotrod .diag-card { background: linear-gradient(160deg, #1e0d07 0%, #110402 100%) }
+html.hotrod .diag-card.pass::before, html.hotrod .diag-card.pass::after { border-color: var(--accent2) }
+html.hotrod .diag-card.fail { border-color: var(--danger) }
+html.hotrod .diag-card.running { border-color: var(--accent) }
+html.hotrod .call-local-wrap { border-color: rgba(204,34,0,.4); box-shadow: 0 0 16px rgba(0,0,0,.6), var(--glow) }

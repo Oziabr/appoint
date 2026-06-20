@@ -6,12 +6,14 @@ html(lang='en')
       include parts/style/base.css
       include parts/style/themes.css
       include parts/style/avail.css
+      include parts/style/call.css
   body
     include parts/views/chrome.pug
     include parts/views/auth.pug
     include parts/views/host.pug
     include parts/views/booking.pug
     include parts/views/modal.pug
+    include parts/views/call.pug
     script
       include parts/js/config.js
       include parts/js/router.js
@@ -20,4 +22,6 @@ html(lang='en')
       include parts/js/booking.js
       include parts/js/modal.js
       include parts/js/utils.js
+      include parts/js/diag.js
+      include parts/js/call.js
       include parts/js/boot.js

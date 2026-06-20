@@ -1,0 +1,60 @@
+
+//  ── DIAGNOSTICS VIEW ─────────────────────────────────────── 
+#view-diag.view
+  .diag-shell
+    .diag-header
+      h1 Connection diagnostics
+      p.diag-sub Check your network and media before joining a call.
+    .diag-grid
+      .diag-card#dtest-media
+        .dtest-icon 🎙
+        .dtest-label CAMERA & MIC
+        .dtest-status.pending Waiting…
+        .dtest-detail
+      .diag-card#dtest-stun
+        .dtest-icon 🌐
+        .dtest-label STUN / PUBLIC IP
+        .dtest-status.pending Waiting…
+        .dtest-detail
+      .diag-card#dtest-p2p
+        .dtest-icon ⚡
+        .dtest-label P2P LOOPBACK
+        .dtest-status.pending Waiting…
+        .dtest-detail
+      .diag-card#dtest-codec
+        .dtest-icon 🎬
+        .dtest-label CODECS
+        .dtest-status.pending Waiting…
+        .dtest-detail
+      .diag-card#dtest-bw
+        .dtest-icon 📶
+        .dtest-label BANDWIDTH EST.
+        .dtest-status.pending Waiting…
+        .dtest-detail
+      .diag-card#dtest-latency
+        .dtest-icon ⏱
+        .dtest-label ROUND-TRIP
+        .dtest-status.pending Waiting…
+        .dtest-detail
+    .diag-verdict#diag-verdict
+    .diag-actions
+      button.btn.btn-primary#diag-run-btn Run diagnostics
+      button.btn.btn-ghost#diag-back-btn ← Back
+
+//  ── CALL VIEW ────────────────────────────────────────────── 
+#view-call.view
+  .call-shell
+    .call-videos
+      video#call-remote(autoplay playsinline)
+      .call-local-wrap
+        video#call-local(autoplay playsinline muted)
+    .call-bar
+      .call-info
+        span.call-label CONNECTED
+        span.call-timer#call-timer 00:00
+      .call-controls
+        button.call-btn#call-btn-mic(title='Mute') 🎙
+        button.call-btn#call-btn-cam(title='Camera') 📷
+        button.call-btn.call-btn-end#call-btn-end(title='End call') ✕
+      .call-stats#call-stats
+    .call-status#call-status Waiting for peer…
