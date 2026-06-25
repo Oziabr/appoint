@@ -71,24 +71,29 @@
 
 /* ─── CALL VIEW ───────────────────────────────────────────────── */
 #view-call {
-  height: 100vh;
+  position: fixed;
+  inset: 0;
   display: none;
   flex-direction: column;
   background: #000;
+  z-index: 500;
 }
 #view-call.active { display: flex }
 
-.call-shell { flex: 1; display: flex; flex-direction: column; position: relative }
+.call-shell { flex: 1; display: flex; flex-direction: column; min-height: 0 }
 
 .call-videos {
   flex: 1;
   position: relative;
   background: #080808;
   overflow: hidden;
+  min-height: 0;
 }
 #call-remote {
+  position: absolute;
+  inset: 0;
   width: 100%; height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   background: #111;
 }
 .call-local-wrap {
